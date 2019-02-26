@@ -1,0 +1,29 @@
+version: '3'
+services:
+  worker:
+    image: coreoasis/custom_model_worker:latest
+    build:
+    context: .
+    dockerfile: Dockerfile.custom_model_worker
+
+    links:
+     - celery-db
+     - rabbit:myrabbit
+    environment:
+     - OASIS_MODEL_SUPPLIER_ID=OasisLMF
+     - OASIS_MODEL_ID=ComplexModelExample
+     - OASIS_MODEL_VERSION_ID=1
+     - OASIS_RABBIT_HOST=rabbit
+     - OASIS_RABBIT_PORT=5672
+     - OASIS_RABBIT_USER=rabbit
+     - OASIS_RABBIT_PASS=rabbit
+     - OASIS_CELERY_DB_ENGINE=db+mysql+pymysql
+     - OASIS_CELERY_DB_HOST=celery-db
+     - OASIS_CELERY_DB_PASS=password
+     - OASIS_CELERY_DB_USER=celery
+     - OASIS_CELERY_DB_NAME=celery
+     - OASIS_CELERY_DB_PORT=3306
+    volumes:
+#     - ./log:/var/log/oasis:rw
+     - ${OASIS_MODEL_DATA_DIR:-./data/static}:/var/oasis/custom/:rw
+     - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw

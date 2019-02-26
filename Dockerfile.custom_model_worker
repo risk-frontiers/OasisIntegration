@@ -1,0 +1,15 @@
+FROM coreoasis/model_worker:latest 
+
+COPY ./requirements.txt /tmp/ 
+RUN pip install -r /tmp/requirements.txt
+
+COPY ./conf.ini ./
+COPY ./complex_model ./complex_model
+COPY ./setup.py ./
+RUN pip install -e .
+
+COPY ./oasislmf.json /var/oasis/custom/
+COPY ./analysis_settings.json /var/oasis/custom/
+COPY ./model_data /var/oasis/custom/
+
+ENTRYPOINT /bin/bash

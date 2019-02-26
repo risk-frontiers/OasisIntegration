@@ -1,0 +1,2 @@
+-e git+git://github.com/OasisLMF/OasisLMF.git@feature/new_custom_model#egg=oasislmf
+msgpack
