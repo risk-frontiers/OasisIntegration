@@ -4,12 +4,11 @@ COPY ./requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 
 COPY ./conf.ini ./
-COPY ./complex_model ./complex_model
-COPY ./setup.py ./
-RUN pip install -e .
+COPY ./complex_model /var/oasis/complex_model
+COPY ./setup.py /var/oasis/
+RUN pip install -e /var/oasis/
 
-COPY ./oasislmf.json /var/oasis/custom/
-COPY ./analysis_settings.json /var/oasis/custom/
-COPY ./model_data /var/oasis/custom/
-
-ENTRYPOINT /bin/bash
+#COPY ./oasislmf.json /var/oasis/custom/
+#COPY ./analysis_settings.json /var/oasis/custom/
+#COPY ./tests/data/ /var/oasis/custom/tests/data/
+#ENTRYPOINT /bin/bash
