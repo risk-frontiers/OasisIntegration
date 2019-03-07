@@ -38,6 +38,12 @@ cd OasisEvaluation
 sudo ./install.sh
 ```
 
+4) Access via localhost, using the default `user: admin` `pass: password`
+* [OasisUI Interface](http://localhost:8080/app/BFE_RShiny) - *localhost:8080/app/BFE_RShiny* 
+* [API Swagger UI](http://localhost:8000/) - *localhost:8000*
+* [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*
+
+
 ### Notes: 
 * Gulcalc python class [complex_model/OasisLMF_ComplexModelExample_gulcalc.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/OasisLMF_ComplexModelExample_gulcalc.py)
 * Lookup python class [complex_model/DummyComplexModelKeysLookup.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/DummyComplexModelKeysLookup.py)
