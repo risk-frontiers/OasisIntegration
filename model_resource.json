@@ -45,6 +45,15 @@
                   }
             },
             {
+                 "peril_custom":{
+                    "name": "Complex Model Peril",
+            "desc": "Run model with Custom Peril",
+                    "type":"boolean",
+                    "default": false
+
+                  }
+            },
+            {
                "leakage_factor": {
                    "name": "Leakage Factor",
            "desc": "Tooltip for Leakage option",
