@@ -3,8 +3,6 @@
 # ComplexModelMDK
 
 ## Run complex model example via MDK
-
-To run:
 * Install MDK dependent packages, for ubuntu
 ```
 sudo apt-get update && sudp apt-get install libspatialindex-dev unixodbc-dev build-essential libtool zlib1g-dev autoconf
