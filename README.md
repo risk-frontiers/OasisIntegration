@@ -30,8 +30,8 @@ sudo apt update && sudo apt install git docker docker-compose
 
 2) Clone this repository
 ```
-git clone https://github.com/OasisLMF/OasisEvaluation.git
-cd OasisEvaluation
+git clone https://github.com/OasisLMF/ComplexModelMdk.git
+cd ComplexModelMdk
 ```
 3) Run the deployment script
 ```
