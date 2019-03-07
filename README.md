@@ -1,3 +1,5 @@
+<img src="https://oasislmf.org/packages/oasis_theme_package/themes/oasis_theme/assets/src/oasis-lmf-colour.png" alt="Oasis LMF logo" width="250"/>
+
 # ComplexModelMDK
 
 ## Run complex model example via MDK
@@ -7,7 +9,7 @@ To run:
 ```
 sudo apt-get update && sudp apt-get install libspatialindex-dev unixodbc-dev build-essential libtool zlib1g-dev autoconf
 ```
-* Install OasisLmf>=1.3.1 `pip install oasislmf>=1.3.1`
+* Install OasisLmf `pip install oasislmf>=1.3.1`
 * Install the custom item commands and the example custom GulCalc:
 
   ```
