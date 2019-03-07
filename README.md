@@ -5,7 +5,7 @@
 To run:
 * Install MDK dependent packages, for ubuntu
 ```
-sudo apt-get update && sudp apt-get install libspatialindex-dev unixodbc-dev
+sudo apt-get update && sudp apt-get install libspatialindex-dev unixodbc-dev build-essential libtool zlib1g-dev autoconf
 ```
 * Install OasisLmf>=1.3.1 `pip install oasislmf>=1.3.1`
 * Install the custom item commands and the example custom GulCalc:
