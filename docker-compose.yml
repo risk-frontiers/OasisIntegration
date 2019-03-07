@@ -30,7 +30,6 @@ services:
      - STARTUP_RUN_MIGRATIONS=true
    volumes:
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
-     - ./model_resource.json:/var/www/oasis/src/server/static/model_resource.json
   worker-monitor:
    image: coreoasis/api_server:latest
    command: [wait-for-server, 'server:8000', celery, worker, -A, src.server.oasisapi, --loglevel=INFO]
