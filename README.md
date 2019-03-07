@@ -1,8 +1,13 @@
 # ComplexModelMDK
-Run complex models via the MDK
+
+## Run complex model example via MDK
 
 To run:
-* Install OasisLmf from the branch feature/new_custom_model
+* Install MDK dependent packages, for ubuntu
+```
+sudo apt-get update && sudp apt-get install libspatialindex-dev unixodbc-dev
+```
+* Install OasisLmf>=1.3.1 `pip install oasislmf>=1.3.1`
 * Install the custom item commands and the example custom GulCalc:
 
   ```
@@ -14,3 +19,27 @@ To run:
   ```
   oasislmf model run -C oasislmf.json --verbose
   ```
+
+## Run the complex model example using the API & UI
+1) install git, docker and docker-compose
+
+For example on an Ubuntu/Debian based Linux system use:
+```
+sudo apt update && sudo apt install git docker docker-compose
+```
+
+2) Clone this repository
+```
+git clone https://github.com/OasisLMF/OasisEvaluation.git
+cd OasisEvaluation
+```
+3) Run the deployment script
+```
+sudo ./install.sh
+```
+
+### Notes: 
+Gulcalc python class [complex_model/OasisLMF_ComplexModelExample_gulcalc.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/OasisLMF_ComplexModelExample_gulcalc.py)
+Lookup python class [complex_model/DummyComplexModelKeysLookup.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/DummyComplexModelKeysLookup.py)
+Example test data [tests/data](https://github.com/OasisLMF/ComplexModelMDK/tree/master/tests/data)
+Example model params for the UI [model_resource.json]()
