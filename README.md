@@ -39,7 +39,7 @@ sudo ./install.sh
 ```
 
 ### Notes: 
-Gulcalc python class [complex_model/OasisLMF_ComplexModelExample_gulcalc.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/OasisLMF_ComplexModelExample_gulcalc.py)
-Lookup python class [complex_model/DummyComplexModelKeysLookup.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/DummyComplexModelKeysLookup.py)
-Example test data [tests/data](https://github.com/OasisLMF/ComplexModelMDK/tree/master/tests/data)
-Example model params for the UI [model_resource.json]()
+* Gulcalc python class [complex_model/OasisLMF_ComplexModelExample_gulcalc.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/OasisLMF_ComplexModelExample_gulcalc.py)
+* Lookup python class [complex_model/DummyComplexModelKeysLookup.py](https://github.com/OasisLMF/ComplexModelMDK/blob/master/complex_model/DummyComplexModelKeysLookup.py)
+* Example test data [tests/data](https://github.com/OasisLMF/ComplexModelMDK/tree/master/tests/data)
+* Example model params for the UI [model_resource.json]()
