@@ -15,6 +15,7 @@ export UI_VER='1.0.0'
     # reset and build custom worker
     git checkout -- Dockerfile.custom_model_worker
     sed -i "s|:latest|:${OASIS_VER}|g" Dockerfile.custom_model_worker
+    docker pull coreoasis/custom_model_worker:$OASIS_VER
     docker build -f Dockerfile.custom_model_worker -t coreoasis/custom_model_worker:$OASIS_VER .
     
     # Start API
