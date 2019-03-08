@@ -1,2 +1,2 @@
--e git+git://github.com/OasisLMF/OasisLMF.git@hotfix/custom_model_run#egg=oasislmf
+oasislmf>=1.3.2
 msgpack
