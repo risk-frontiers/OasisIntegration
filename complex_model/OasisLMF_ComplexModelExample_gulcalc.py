@@ -93,7 +93,11 @@ def main():
     number_of_samples = analysis_settings_json['analysis_settings']['number_of_samples']
     
     # Access any model specific settings for the analysis
-    model_settings = analysis_settings_json['analysis_settings']['model_settings']
+    if 'model_settings' in analysis_settings_json.keys():
+        ## WORK AROUND FOR (UI settings return)
+        model_settings = analysis_settings_json['model_settings']
+    else:
+        model_settings = analysis_settings_json['analysis_settings']['model_settings']
 
     # Read the inputs, including the extended items
     with os.popen('coveragetocsv < {}'.format(
