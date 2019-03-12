@@ -27,8 +27,8 @@ def main():
 
     parser = argparse.ArgumentParser(description='Ground up loss generation.')
     parser.add_argument(
-        '-e', '--event_id_range', required=True, nargs=2, type=int,
-        help='The minimum and maximum event IDs.',
+        '-e', '--event_batch', required=True, nargs=2, type=int,
+        help='The n_th batch out of m.',
     )
     parser.add_argument(
         '-a', '--analysis_settings_file', required=True,
@@ -76,9 +76,9 @@ def main():
     if not os.path.exists(analysis_settings_fp):
         raise Exception('Analysis setting file does not exist')
 
-    event_range = args.event_id_range
-    if event_range[0] > event_range[1]:
-        raise Exception('Invalid event ID range')
+    (event_batch, max_event_batch) = args.event_batch
+    if event_batch > max_event_batch:
+        raise Exception('Invalid event batch')
 
     inputs_fp = args.inputs_directory
     if not os.path.exists(inputs_fp):
@@ -93,11 +93,7 @@ def main():
     number_of_samples = analysis_settings_json['analysis_settings']['number_of_samples']
     
     # Access any model specific settings for the analysis
-    if 'model_settings' in analysis_settings_json.keys():
-        ## WORK AROUND FOR (UI settings return)
-        model_settings = analysis_settings_json['model_settings']
-    else:
-        model_settings = analysis_settings_json['analysis_settings']['model_settings']
+    model_settings = analysis_settings_json['analysis_settings']['model_settings']
 
     # Read the inputs, including the extended items
     with os.popen('coveragetocsv < {}'.format(
@@ -121,7 +117,11 @@ def main():
         output_coverage.write(struct.pack('i', coverage_stream_id))
         output_coverage.write(struct.pack('i', number_of_samples))
 
-    for event_id in range(event_range[0], event_range[1] + 1):
+    max_event_id = 1000
+    for event_id in range(
+         int((event_batch - 1) * max_event_id/max_event_batch) + 1,
+         int(event_batch * max_event_id/max_event_batch)+ 1):
+
         # Losses by sample index by item
         item_samples = {}
         # Coverages by sample index by item
