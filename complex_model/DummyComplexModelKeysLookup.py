@@ -1,8 +1,6 @@
 import itertools
-from interface import implements
 import json
 
-import oasislmf.utils.peril
 import oasislmf.utils.coverage
 from oasislmf.utils.metadata import (
     OASIS_KEYS_SC,
@@ -10,79 +8,125 @@ from oasislmf.utils.metadata import (
     OASIS_KEYS_NM,
     OASIS_KEYS_STATUS)
 from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
+from PostcodeLookup import PostcodeLookup
+from OasisToRF import EnumResolution
+from RFException import LocationLookupException
+from RFPerils import PerilSet, OEDPeril
 
-class DummyComplexModelKeysLookup(OasisBaseKeysLookup):
-
-    def __init__(self, 
-            keys_data_directory=None,
-            supplier=None,
-            model_name=None,
-            model_version=None):
-
-        self._peril_ids = [
-            oasislmf.utils.peril.PERIL_ID_WIND,
-            oasislmf.utils.peril.PERIL_ID_SURGE
-        ]
-
+class ComplexLookup(OasisBaseKeysLookup):
+    def __init__(self,
+                 keys_data_directory=None,
+                 supplier=None,
+                 model_name=None,
+                 model_version=None):
+        self.keys_file_dir = keys_data_directory
         self._coverage_types = [
             oasislmf.utils.coverage.BUILDING_COVERAGE_CODE,
-            oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE
-        ]
+            oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE,
+            oasislmf.utils.coverage.TIME_COVERAGE_CODE,
+            oasislmf.utils.coverage.OTHER_STRUCTURES_COVERAGE_CODE]
+        self._peril_id = None
+        if model_name is not None and model_name.lower() in PerilSet.keys():
+            self._peril_id = PerilSet[model_name.lower()]['OED_ID']
 
+    def _get_lob_id(self, record):
+        if 'occupancycode' not in record:
+            return 1  # residential: this is the default behaviour when this field is missing in the workbench
+        if 1050 <= record['occupancycode'] <= 1099:
+            return 1  # residential
+        elif 1100 <= record['occupancycode'] <= 1149:
+            return 2  # commercial
+        elif 1150 <= record['occupancycode'] <= 1199:
+            return 3  # industrial
+        else:
+            return None
 
-    def process_location(self, loc, peril_id, coverage_type):
+    def create_uni_exposure(self, loc, coverage_type):
+        uni_exposure = dict()
+        uni_exposure['origin_file_line'] = int(loc['row_id'])
+        uni_exposure['lob_id'] = self._get_lob_id(loc)
+        uni_exposure['cover_id'] = coverage_type
 
-        status = OASIS_KEYS_SC
-        message = "OK"
+        uni_exposure['lrg_id'] = int(loc['lowrescresta']) if 'lowrescresta' in loc else None
+        uni_exposure['lrg_type'] = 2 if uni_exposure['lrg_id'] else None
+        if uni_exposure['lrg_id']:
+            uni_exposure['best_res'] = EnumResolution.Cresta.value
 
-        if (
-            peril_id == oasislmf.utils.peril.PERIL_ID_WIND and
-            coverage_type == oasislmf.utils.coverage.BUILDING_COVERAGE_CODE
-        ):
-            data = {
-                "area_peril_id": 1,
-                "vulnerability_id": 1
+        uni_exposure['med_id'] = int(loc['postalcode']) if 'postalcode' in loc else None
+        uni_exposure['med_type'] = 1 if uni_exposure['med_id'] and uni_exposure['med_id'] > 0 else None
+        if uni_exposure['med_id']:
+            uni_exposure['best_res'] = EnumResolution.Postcode.value
+
+        if 'locnumber' not in loc:
+            raise LocationLookupException("Location Number is required but is missing in the OED file")
+
+        uni_exposure['loc_id'] = str(loc['locnumber'])
+        if loc["longitude"] > 0 or loc["latitude"] < 0:  # todo: check that lat/lon is indeed in AU or NZ
+            uni_exposure['latitude'] = loc['latitude']
+            uni_exposure['longitude'] = loc['longitude']
+            uni_exposure['best_res'] = EnumResolution.LatLong.value
+            if ('postcalcode' not in loc or loc['postalcode'] is None or int(loc['postalcode']) == 0) \
+                    and self.keys_file_dir:
+                postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
+                uni_exposure['med_id'] = postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
+                if uni_exposure['med_id'] is None and self._peril_id is not None \
+                        and self._peril_id & OEDPeril.Hail.value > 0:
+                    raise LocationLookupException("Cannot find postcode for location " + str(uni_exposure['loc_id']) +
+                                                  ". Postcode is required for " + str(OEDPeril.Hail))
+            if ('lowrescresta' not in loc or loc['lowrescresta'] is None or int(loc['lowrescresta']) == 0) \
+                    and self.keys_file_dir:
+                pass  # todo: this is not required since we do not handle aggregation or display in oasis
+
+        # uni_exposure['address_id']
+        # uni_exposure['address_type']
+
+        uni_exposure['country_code'] = "au"
+
+        # uni_exposure['state'] # this must be 3 chars
+
+        # uni_exposure['zone_type']
+        # uni_exposure['zone_id']
+
+        # uni_exposure['catchment_type'] # todo: when implementing flood
+        # uni_exposure['catchment_id']
+
+        # uni_exposure['fine_type']
+        # uni_exposure['fine_id']
+
+        uni_exposure['props'] = {"YearBuilt": int(loc['yearbuilt']) if 'yearbuilt' in loc else 0}
+
+        # uni_exposure['modelled']
+
+        return uni_exposure
+
+    def process_location(self, loc, coverage_type):
+        try:
+            uni_exposure = self.create_uni_exposure(loc, coverage_type)
+            return {
+                'id': loc['row_id'],
+                'peril_id': self._peril_id,
+                'coverage_type': coverage_type,
+                'model_data': json.dumps(uni_exposure),
+                'status': OASIS_KEYS_SC,
+                'message': "OK"
             }
-
-        elif (
-            peril_id == oasislmf.utils.peril.PERIL_ID_WIND and
-            coverage_type == oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE
-        ):
-            data = {
-                "area_peril_id": 2,
-                "vulnerability_id": 2
+        except LocationLookupException as e:
+            return {
+                'id': loc['row_id'],
+                'peril_id': self._peril_id,
+                'coverage_type': coverage_type,
+                'status': OASIS_KEYS_FL,
+                'message': str(e)
             }
-
-        elif (
-            peril_id == oasislmf.utils.peril.PERIL_ID_SURGE and
-            coverage_type == oasislmf.utils.coverage.BUILDING_COVERAGE_CODE
-        ):
-            data = {
-                "area_peril_id": 3,
-                "vulnerability_id": 3
-            }
-
-        elif (
-            peril_id == oasislmf.utils.peril.PERIL_ID_SURGE and
-            coverage_type == oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE
-            ):
-            data = {
-                "area_peril_id": 4,
-                "vulnerability_id": 4
-            }
-
-        return {
-            'locnumber': loc['locnumber'],
-            'peril_id': peril_id,
-            'coverage_type': coverage_type,
-            'model_data': json.dumps(data),
-            'status': status,
-            'message': message
-        }
 
     def process_locations(self, locs):
-
         locs_seq = (loc for _, loc in locs.iterrows())
-        for loc, peril_id, coverage_type in \
-                itertools.product(locs_seq, self._peril_ids, self._coverage_types):
-            yield self.process_location(loc, peril_id, coverage_type)
+        for loc, coverage_type in \
+                itertools.product(locs_seq, self._coverage_types):
+            yield self.process_location(loc, coverage_type)
+
+
+if __name__ == "__main__":
+    cl = ComplexLookup(keys_data_directory="/home/AD.RISKFRONTIERS.COM/tahiry/oasis/keys_data", model_name="hailAus")
+    loc = {'row_id': 1, 'locnumber': 1, 'latitude': -33.8688, 'longitude': 151.2093}
+    print(cl.process_location(loc, 1))

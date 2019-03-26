@@ -2,10 +2,15 @@ import argparse
 import os
 import json
 import sys
-import struct
 import logging
+import subprocess
 
 import pandas as pd
+
+from backports.tempfile import TemporaryDirectory
+from oasislmf.utils.exceptions import OasisException
+from OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string
+from GulcalcToBin import gulcalc_sqlite_to_bin
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -19,12 +24,12 @@ else:
     if sys.platform == "win32":
         # set sys.stdin to binary mode
         import msvcrt
+
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
 
 def main():
-
     parser = argparse.ArgumentParser(description='Ground up loss generation.')
     parser.add_argument(
         '-e', '--event_batch', required=True, nargs=2, type=int,
@@ -91,7 +96,7 @@ def main():
 
     analysis_settings_json = json.load(open(analysis_settings_fp))
     number_of_samples = analysis_settings_json['analysis_settings']['number_of_samples']
-    
+
     # Access any model specific settings for the analysis
     model_settings = analysis_settings_json['analysis_settings']['model_settings']
 
@@ -107,68 +112,56 @@ def main():
     with os.popen('complex_itemtocsv < {}'.format(complex_items_fp)) as p:
         items_pd = pd.read_csv(p)
 
-    # Write simulated GULs to stdout
-    if do_item_output:
-        item_stream_id = (1 << 24) | 1
-        output_item.write(struct.pack('i', item_stream_id))
-        output_item.write(struct.pack('i', number_of_samples))
-    if do_coverage_output:
-        coverage_stream_id = (1 << 24) | 2
-        output_coverage.write(struct.pack('i', coverage_stream_id))
-        output_coverage.write(struct.pack('i', number_of_samples))
+    with TemporaryDirectory() as working_dir:
+        # Write out RF canonical input files
+        oasislmf = json.load('oasislmf.json')
+        risk_platform_dir = os.path.join(oasislmf['model_data_path'], "RISKFRONTIERS/HAILAUS")
+        if not os.path.isfile(os.path.join(risk_platform_dir, DEFAULT_DB)):
+            raise FileNotFoundError("Model data not set correctly")
+        temp_db_fp = os.path.join(working_dir, DEFAULT_DB)
 
-    max_event_id = 1000
-    for event_id in range(
-         int((event_batch - 1) * max_event_id/max_event_batch) + 1,
-         int(event_batch * max_event_id/max_event_batch)+ 1):
+        # populate RF exposure and coverage datatable
+        num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, os.path.join(risk_platform_dir, "data"))
 
-        # Losses by sample index by item
-        item_samples = {}
-        # Coverages by sample index by item
-        coverage_samples = {}
+        # Call Risk.Platform.Core
+        max_event_id = 130000  # todo: find this somewhere
+        # 1 generate oasis_param.json
+        oasis_param = {
+            "Peril": 2,
+            "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
+            "CoverageConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
+            "ResultConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
+            "MinEventId": int((event_batch - 1) * max_event_id / max_event_batch) + 1,
+            "MaxEventId": int(event_batch * max_event_id / max_event_batch),
+            "NumSamples": int(number_of_samples),
+            "CountryCode": "au",
+            "RiskPlatformDir": risk_platform_dir,
+            "WorkingDir": inputs_fp,
+            "NumRows": num_rows,
+            "PortfolioId": 1,
+            "IndividualRiskMode": model_settings['irm'] if 'irm' in model_settings else False,
+            "StaticMotor": model_settings['static_motor'] if 'static_motor' in model_settings else False,
+        }
 
-        for _, row in items_pd.iterrows():
-            item_id = row["item_id"]
-            coverage_id = row["coverage_id"]
-            if item_id not in item_samples:
-                item_samples[item_id] = {}
-            if coverage_id not in coverage_samples:
-                coverage_samples[coverage_id] = {}
+        oasis_param_fp = os.path.join(inputs_fp, "oasis_param.json")
+        with open(oasis_param_fp, 'w') as param:
+            param.writelines(json.dumps(oasis_param))
 
-            # Special sample IDs:
-            # -1 : Numerically integrated mean
-            # -2 : Numerically integrated stddev
-            for sample_idx in \
-                    (-1, -2) + tuple(range(1, number_of_samples + 1)):
-                loss_sample = 1000000.0
-                item_samples[item_id]
+        # 2 call dotnet Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
+        # todo: replace with self contained call
+        cmd_str = "dotnet {} --oasis -c {}".format(os.path.join(oasis_param["RiskPlatformDir"], "Risk.Platform.Core",
+                                                                "Risk.Platform.Core.dll"), oasis_param_fp)
+        try:
+            subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
+            if do_coverage_output:
+                gulcalc_sqlite_to_bin(temp_db_fp, output_item, int(number_of_samples), 2)
+            elif do_item_output:
+                gulcalc_sqlite_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 1)
 
-                if sample_idx not in item_samples[item_id]:
-                    item_samples[item_id][sample_idx] = loss_sample
-                if sample_idx in coverage_samples[coverage_id]:
-                    coverage_samples[coverage_id][sample_idx] += loss_sample
-                else:
-                    coverage_samples[coverage_id][sample_idx] = loss_sample
-
-        if do_item_output:
-            for item_id in item_samples:
-                output_item.write(struct.pack('i', event_id))
-                output_item.write(struct.pack('i', item_id))
-                for sample_idx in sorted(item_samples[item_id]):
-                    output_item.write(struct.pack('i', sample_idx))
-                    output_item.write(struct.pack('f', loss_sample))
-                output_item.write(struct.pack('i', 0))
-                output_item.write(struct.pack('f', 0.0))
-        if do_coverage_output:
-            for coverage_id in coverage_samples:
-                output_coverage.write(struct.pack('i', event_id))
-                output_coverage.write(struct.pack('i', coverage_id))
-                for sample_idx in sorted(item_samples[item_id]):
-                    output_coverage.write(struct.pack('i', sample_idx))
-                    output_coverage.write(struct.pack('f', loss_sample))
-                output_coverage.write(struct.pack('i', 0))
-                output_coverage.write(struct.pack('f', 0.0))
+        except subprocess.CalledProcessError as e:
+            raise OasisException(e)
 
 
 if __name__ == "__main__":
     main()
+

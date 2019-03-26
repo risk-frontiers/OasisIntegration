@@ -66,9 +66,9 @@ services:
      - celery-db
      - rabbit:myrabbit
     environment:
-     - OASIS_MODEL_SUPPLIER_ID=OasisLMF
-     - OASIS_MODEL_ID=ComplexModelExample
-     - OASIS_MODEL_VERSION_ID=1
+     - OASIS_MODEL_SUPPLIER_ID=RiskFrontiers
+     - OASIS_MODEL_ID=HailAUS
+     - OASIS_MODEL_VERSION_ID=7
      - OASIS_RABBIT_HOST=rabbit
      - OASIS_RABBIT_PORT=5672
      - OASIS_RABBIT_USER=rabbit
