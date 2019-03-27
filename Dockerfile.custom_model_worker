@@ -6,9 +6,15 @@ RUN pip install -r /tmp/requirements.txt
 COPY ./conf.ini ./
 COPY ./complex_model /var/oasis/complex_model
 COPY ./setup.py /var/oasis/
+
+RUN chmod +x /var/oasis/complex_model/Risk.Platform.Core/Risk.Platform.Core
+ENV PYTHONPATH "${PYTHONPATH}:/var/oasis/complex_model"
+
 RUN pip install -e /var/oasis/
+
+VOLUME ["/var/oasis/model_data"]
 
 #COPY ./oasislmf.json /var/oasis/custom/
 #COPY ./analysis_settings.json /var/oasis/custom/
-#COPY ./tests/data/ /var/oasis/custom/tests/data/
-#ENTRYPOINT /bin/bash
+#COPY ./tests /var/oasis/custom/tests
+ENTRYPOINT /bin/bash

@@ -1,0 +1,23 @@
+{
+	"Peril": 2,
+	"ItemConduit": {
+		"DbBrand": 1,
+		"ConnectionString": "Data Source=/var/oasis/custom/tests/riskfrontiersdbAUS_v2_4_1.db;Version=3;"
+	},
+	"CoverageConduit": {
+		"DbBrand": 1,
+		"ConnectionString": "Data Source=/var/oasis/custom/tests/riskfrontiersdbAUS_v2_4_1.db;Version=3;"
+	},
+	"ResultConduit": {
+		"DbBrand": 1,
+		"ConnectionString": "Data Source=/var/oasis/custom/tests/riskfrontiersdbAUS_v2_4_1.db;Version=3;"
+	},
+	"MinEventId": 1,
+	"MaxEventId": 136000000,
+	"NumSamples": 1,
+	"CountryCode": "au",
+	"RiskPlatformData": "/var/oasis/model_data",
+	"WorkingDirectory": "/var/oasis/custom/tests",
+	"NumRows": 1,
+	"PortfolioId": 1
+}
