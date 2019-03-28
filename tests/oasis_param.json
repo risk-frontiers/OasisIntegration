@@ -16,7 +16,7 @@
 	"MaxEventId": 136000000,
 	"NumSamples": 1,
 	"CountryCode": "au",
-	"RiskPlatformData": "/var/oasis/model_data",
+	"RiskPlatformData": "/var/oasis/model_data/RISKFRONTIERS/HAILAUS",
 	"WorkingDirectory": "/var/oasis/custom/tests",
 	"NumRows": 1,
 	"PortfolioId": 1
