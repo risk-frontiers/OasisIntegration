@@ -29,6 +29,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         self._peril_id = None
         if model_name is not None and model_name.lower() in PerilSet.keys():
             self._peril_id = PerilSet[model_name.lower()]['OED_ID']
+        if self.keys_file_dir:
+            self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
 
     def _get_lob_id(self, record):
         if 'occupancycode' not in record:
@@ -48,15 +50,21 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = coverage_type
 
-        uni_exposure['lrg_id'] = int(loc['lowrescresta']) if 'lowrescresta' in loc else None
-        uni_exposure['lrg_type'] = 2 if uni_exposure['lrg_id'] else None
-        if uni_exposure['lrg_id']:
-            uni_exposure['best_res'] = EnumResolution.Cresta.value
+        try:
+            uni_exposure['lrg_id'] = int(loc['lowrescresta']) if 'lowrescresta' in loc else None
+            uni_exposure['lrg_type'] = 2 if uni_exposure['lrg_id'] else None
+            if uni_exposure['lrg_id']:
+                uni_exposure['best_res'] = EnumResolution.Cresta.value
+        except ValueError:
+            uni_exposure['lrg_id'] = None
 
-        uni_exposure['med_id'] = int(loc['postalcode']) if 'postalcode' in loc else None
-        uni_exposure['med_type'] = 1 if uni_exposure['med_id'] and uni_exposure['med_id'] > 0 else None
-        if uni_exposure['med_id']:
-            uni_exposure['best_res'] = EnumResolution.Postcode.value
+        try:
+            uni_exposure['med_id'] = int(loc['postalcode']) if 'postalcode' in loc else None
+            uni_exposure['med_type'] = 1 if uni_exposure['med_id'] and uni_exposure['med_id'] > 0 else None
+            if uni_exposure['med_id']:
+                uni_exposure['best_res'] = EnumResolution.Postcode.value
+        except ValueError:
+            uni_exposure['med_id'] = None
 
         if 'locnumber' not in loc:
             raise LocationLookupException("Location Number is required but is missing in the OED file")
@@ -66,19 +74,17 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['latitude'] = loc['latitude']
             uni_exposure['longitude'] = loc['longitude']
             uni_exposure['best_res'] = EnumResolution.LatLong.value
-            if ('postcalcode' not in loc or loc['postalcode'] is None or int(loc['postalcode']) == 0) \
-                    and self.keys_file_dir:
-                postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
-                uni_exposure['med_id'] = postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
+            if uni_exposure['med_id'] is None and self._postcode_lookup:
+                uni_exposure['med_id'] = self._postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
                 if uni_exposure['med_id'] is None and self._peril_id is not None \
                         and self._peril_id & OEDPeril.Hail.value > 0:
                     raise LocationLookupException("Cannot find postcode for location " + str(uni_exposure['loc_id']) +
                                                   ". Postcode is required for " + str(OEDPeril.Hail))
-            if ('lowrescresta' not in loc or loc['lowrescresta'] is None or int(loc['lowrescresta']) == 0) \
-                    and self.keys_file_dir:
+            if uni_exposure['lrg_id'] and self._postcode_lookup:
                 pass  # todo: this is not required since we do not handle aggregation or display in oasis
 
-        # uni_exposure['address_id']
+        # todo: handle missing geolocation here (i.e. no address, no latlong, no cresta, no postcode
+        # uni_exposure['address_id'] # todo: lookup for address id in user_defined_1
         # uni_exposure['address_type']
 
         uni_exposure['country_code'] = "au"
