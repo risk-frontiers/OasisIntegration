@@ -4,6 +4,6 @@
     "keys_data_path": "./complex_model",
     "model_version_file_path": "./complex_model/ModelVersion.csv",
     "source_accounts_file_path": "tests/data/SourceAccOEDPiWind.csv",
-    "source_exposure_file_path": "tests/data/SourceLocOEDPiWind10.csv",
+    "source_exposure_file_path": "tests/data/SourceLocOEDPiWind1.csv",
     "model_data_path": "./model_data"
 }

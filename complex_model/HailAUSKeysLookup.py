@@ -8,12 +8,13 @@ from oasislmf.utils.metadata import (
     OASIS_KEYS_NM,
     OASIS_KEYS_STATUS)
 from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
-from PostcodeLookup import PostcodeLookup
-from OasisToRF import EnumResolution
-from RFException import LocationLookupException
-from RFPerils import PerilSet, OEDPeril
+from .PostcodeLookup import PostcodeLookup
+from .OasisToRF import EnumResolution
+from .RFException import LocationLookupException
+from .RFPerils import PerilSet, OEDPeril
 
-class ComplexLookup(OasisBaseKeysLookup):
+
+class HailAUSKeysLookup(OasisBaseKeysLookup):
     def __init__(self,
                  keys_data_directory=None,
                  supplier=None,
@@ -43,7 +44,7 @@ class ComplexLookup(OasisBaseKeysLookup):
 
     def create_uni_exposure(self, loc, coverage_type):
         uni_exposure = dict()
-        uni_exposure['origin_file_line'] = int(loc['row_id'])
+        uni_exposure['origin_file_line'] = int(loc['locnumber'])
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = coverage_type
 
@@ -103,7 +104,7 @@ class ComplexLookup(OasisBaseKeysLookup):
         try:
             uni_exposure = self.create_uni_exposure(loc, coverage_type)
             return {
-                'id': loc['row_id'],
+                'locnumber': loc['locnumber'],
                 'peril_id': self._peril_id,
                 'coverage_type': coverage_type,
                 'model_data': json.dumps(uni_exposure),
@@ -112,7 +113,7 @@ class ComplexLookup(OasisBaseKeysLookup):
             }
         except LocationLookupException as e:
             return {
-                'id': loc['row_id'],
+                'locnumber': loc['locnumber'],
                 'peril_id': self._peril_id,
                 'coverage_type': coverage_type,
                 'status': OASIS_KEYS_FL,
@@ -127,6 +128,6 @@ class ComplexLookup(OasisBaseKeysLookup):
 
 
 if __name__ == "__main__":
-    cl = ComplexLookup(keys_data_directory="/home/AD.RISKFRONTIERS.COM/tahiry/oasis/keys_data", model_name="hailAus")
-    loc = {'row_id': 1, 'locnumber': 1, 'latitude': -33.8688, 'longitude': 151.2093}
+    cl = HailAUSKeysLookup(keys_data_directory="/hadoop/oasis/keys_data", model_name="hailAus")
+    loc = {'locnumber': 1, 'latitude': -33.8688, 'longitude': 151.2093}
     print(cl.process_location(loc, 1))
