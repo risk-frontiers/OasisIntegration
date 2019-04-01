@@ -52,7 +52,7 @@ def gulcalc_sqlite_to_bin(db_fp, output, num_sample, type = 1):
     cur = con.cursor()
     cur.execute("SELECT event_id, reg_id, sample_id, groundup from u_lossoasis_r254 order by event_id, reg_id;")
 
-    if not type in (1,2) or not num_sample > 0:
+    if type not in (1,2) or not num_sample > 0:
         return
     header = (1,0,type)
     s = struct.Struct('>BbH')
