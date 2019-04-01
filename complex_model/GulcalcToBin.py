@@ -4,22 +4,23 @@ import struct
 import sqlite3
 
 """
-Test implementation of ktool items conversion tool including
+Implementation of ktool item/coverage bin conversion tool including
 complex item data serialized with msgpack.
 """
 
 
-def gulcalc_csv_to_bin(source, output, num_sample, type = 1):
+def gulcalc_csv_to_bin(source, output, num_sample, stream_type=1):
+    """This transforms a gulcalc csv file stream into binary stream
+
+    :param source: input stream
+    :param output: output stream
+    :param num_sample: number of samples
+    :param stream_type: 1 for item option, 2 for coverage option
+    :return: OASIS compliant item or coverage binary stream
     """
-        transforms a gulcalc csv file stream into binary stream
-        source: input stream
-        output: output stream
-        num_sample: number of samples
-        type: 1 for item option, 2 for coverage option
-    """
-    if type not in (1, 2) or not num_sample > 0:
+    if stream_type not in (1, 2) or not num_sample > 0:
         return
-    header = (1, 0, type)
+    header = (1, 0, stream_type)
     s = struct.Struct('>BbH')
     output.write(s.pack(*header))
     sample = (num_sample,)
@@ -27,14 +28,14 @@ def gulcalc_csv_to_bin(source, output, num_sample, type = 1):
     output.write(s.pack(*sample))
 
     loc_col = "item_id"
-    if type == 2:
+    if stream_type == 2:
         loc_col = "coverage_id"
     last_key = (0, 0)
     for row in csv.DictReader(iter(source.readline, '')):
         current_key = (int(row["event_id"]), int(row[loc_col]))
         if not last_key == current_key:
             if not last_key == (0, 0):
-                s = struct.Struct('Q')
+                s = struct.Struct('Q')  # separator
                 output.write(s.pack(*(0,)))
             s = struct.Struct('II')
             output.write(s.pack(*current_key))
@@ -44,17 +45,22 @@ def gulcalc_csv_to_bin(source, output, num_sample, type = 1):
         output.write(s.pack(*losses))
 
 
-def gulcalc_sqlite_to_bin(db_fp, output, num_sample, type = 1):
-    """
-        transforms a sqlite result table (rf format) into oasis loss binary stream
+def gulcalc_sqlite_to_bin(db_fp, output, num_sample, stream_type=1):
+    """This transforms a sqlite result table (rf format) into oasis loss binary stream
+
+    :param db_fp: path to the sqlite database
+    :param output: output stream where results will be written to
+    :param num_sample: number of samples in result
+    :param stream_type: item or coverage stream type
+    :return: OASIS compliant item or coverage binary stream
     """
     con = sqlite3.connect(db_fp)
     cur = con.cursor()
     cur.execute("SELECT event_id, reg_id, sample_id, groundup from u_lossoasis_r254 order by event_id, reg_id;")
 
-    if type not in (1,2) or not num_sample > 0:
+    if stream_type not in (1, 2) or not num_sample > 0:
         return
-    header = (1,0,type)
+    header = (1, 0, stream_type)
     s = struct.Struct('>BbH')
     output.write(s.pack(*header))
     sample = (num_sample,)
@@ -62,12 +68,12 @@ def gulcalc_sqlite_to_bin(db_fp, output, num_sample, type = 1):
     output.write(s.pack(*sample))
 
     rows = cur.fetchall()
-    last_key = (0,0)
+    last_key = (0, 0)
     for row in rows:
         current_key = (int(row[0]), int(row[1]))
         if not last_key == current_key:
-            if not last_key == (0,0):
-                s = struct.Struct('Q')
+            if not last_key == (0, 0):
+                s = struct.Struct('Q')  # separator
                 output.write(s.pack(*(0,)))
             s = struct.Struct('II')
             output.write(s.pack(*current_key))
@@ -89,7 +95,8 @@ if __name__ == "__main__":
         # binary data that read from it becomes corrupted on \r\n
         if sys.platform == "win32":
             # set sys.stdin to binary mode
-            import os, msvcrt
+            import os
+            import msvcrt
             msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
         std_output = sys.stdout
 
