@@ -68,7 +68,8 @@ PerilSet = {
 }
 PerilSet = {x: {"OED_ID": PerilSet[x]["OED_ID"],
                 "COUNTRY": PerilSet[x]["COUNTRY"],
-                "RF_ID": oed_to_rf_peril(PerilSet[x]["OED_ID"])}
+                "RF_ID": oed_to_rf_peril(PerilSet[x]["OED_ID"]),
+                "MAX_EVENT_INDEX": PerilSet[x]["MAX_EVENT_INDEX"]}
             for x in PerilSet}
 
 

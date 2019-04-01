@@ -40,7 +40,7 @@
          },
         "model_version_id": "HailAUS",
         "module_supplier_id": "RiskFrontiers",
-        "number_of_samples": 10,
+        "number_of_samples": 1,
         "prog_id": 1,
         "source_tag": "HailAUS"
     }

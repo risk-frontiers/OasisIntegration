@@ -126,9 +126,9 @@ def main():
         # populate RF exposure and coverage datatable
         num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_dir)
 
-        # Call Risk.Platform.Core
+        # generate oasis_param.json
+        complex_model_directory = "/var/oasis/complex_model"
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
-        # 1 generate oasis_param.json
         oasis_param = {
             "Peril": 2,
             "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
@@ -138,11 +138,13 @@ def main():
             "MaxEventId": int(event_batch * max_event_id / max_event_batch),
             "NumSamples": int(number_of_samples),
             "CountryCode": "au",  # todo: get this from somewhere
-            "ComplexModelDirectory": "/var/oasis/complex_model",
+            "ComplexModelDirectory": complex_model_directory,
+            "LicenseFile": os.path.join(complex_model_directory, "license.txt"),
             "RiskPlatformData": risk_platform_dir,
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
             "PortfolioId": 1,
+            "MaxDegreeOfParallelism": 40,
             "IndividualRiskMode": model_settings['irm'] if 'irm' in model_settings else False,
             "StaticMotor": model_settings['static_motor'] if 'static_motor' in model_settings else False,
         }
@@ -151,7 +153,7 @@ def main():
         with open(oasis_param_fp, 'w') as param:
             param.writelines(json.dumps(oasis_param, indent=4, separators=(',', ': ')))
 
-        # 2 call dotnet Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
+        # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
         # todo: replace with self contained call
         cmd_str = "{} --oasis -c {} {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
                                                             "Risk.Platform.Core",
