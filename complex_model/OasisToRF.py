@@ -89,12 +89,13 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
         ["[" + col + "] " + RF_DEFAULT_COVERAGE_SQLITE_DEF[col]["datatype"] for col in
          RF_DEFAULT_COVERAGE_SQLITE_DEF]) + ");")
 
-    line_id = 0
+    origin_file_line = 0
     items = []
     coverages = []
     for line_id in range(0, num_items):
         item_row = item_source.iloc[line_id]
         coverage_row = coverage_source.iloc[line_id]
+        origin_file_line = line_id + 1
         # building item row
         rf_item = RF_DEFAULT_ITEM.copy()
 
@@ -119,8 +120,8 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
         rf_coverage['loc_id'] = rf_item['loc_id']
 
         # for oasis origin_file_line will be item_id/coverage_id
-        rf_item['origin_file_line'] = line_id + 1
-        rf_coverage['origin_file_line'] = rf_item['origin_file_line']
+        rf_item['origin_file_line'] = origin_file_line
+        rf_coverage['origin_file_line'] = origin_file_line
 
         items.append(tuple(rf_item.values()))
         coverages.append(tuple(rf_coverage.values()))
@@ -145,7 +146,7 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
     con.commit()
 
     con.close()
-    return line_id
+    return origin_file_line
 
 
 ADDRESS_COLUMN_AUTOPOPULATE = [EnumResolution.Latitude, EnumResolution.Longitude, EnumResolution.Postcode,

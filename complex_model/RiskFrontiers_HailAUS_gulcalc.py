@@ -144,7 +144,7 @@ def main():
 
     oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
     with open(oasis_param_fp, 'w') as param:
-        param.writelines(json.dumps(oasis_param))
+        param.writelines(json.dumps(oasis_param, indent=4, separators=(',', ': ')))
 
     # 2 call dotnet Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
     # todo: replace with self contained call
