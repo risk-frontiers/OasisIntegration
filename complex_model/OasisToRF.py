@@ -67,7 +67,6 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
     :param sqlite_fp: path to store the sqlite database containing the exposure and coverage tables
     :param risk_platform_data: path containing the template databases for Risk Frontiers models
     :return: a number of rows in the items and coverages.
-
     """
     num_items = len(item_source)
     num_coverages = len(coverage_source)

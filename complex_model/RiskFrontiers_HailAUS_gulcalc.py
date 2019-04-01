@@ -12,6 +12,7 @@ from oasislmf.utils.exceptions import OasisException
 from OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string
 from GulcalcToBin import gulcalc_sqlite_to_bin
 from Common import PerilSet
+from datetime import datetime
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -153,12 +154,16 @@ def main():
         with open(oasis_param_fp, 'w') as param:
             param.writelines(json.dumps(oasis_param, indent=4, separators=(',', ': ')))
 
+        # define log file
+        log_file = os.path.join(inputs_fp, "riskfrontiers_{}.log".format(
+            datetime.now().strftime("%Y%m%d%H%M%S")))
+
         # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
-        # todo: replace with self contained call
-        cmd_str = "{} --oasis -c {} {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
-                                                            "Risk.Platform.Core",
-                                                            "Risk.Platform.Core"),
-                                               oasis_param_fp, "--debug" if _DEBUG else "")
+        cmd_str = "{} --oasis -c {} {} --log {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
+                                                                     "Risk.Platform.Core", "Risk.Platform.Core"),
+                                                        oasis_param_fp,
+                                                        "--debug" if _DEBUG else "",
+                                                        log_file)
         try:
             subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
             if do_coverage_output:

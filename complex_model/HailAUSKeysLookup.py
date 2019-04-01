@@ -21,8 +21,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                  model_version=None):
         self.keys_file_dir = keys_data_directory
         self._coverage_types = [
-            oasislmf.utils.coverage.BUILDING_COVERAGE_CODE,
-            oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE,
+            oasislmf.utils.coverage.BUILDING_COVERAGE_CODE,  # 1
+            oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE,  #
             oasislmf.utils.coverage.TIME_COVERAGE_CODE,
             oasislmf.utils.coverage.OTHER_STRUCTURES_COVERAGE_CODE]
         self._peril_id = None
@@ -32,6 +32,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
 
     def _get_lob_id(self, record):
+        """This transforms the occupancy code into Multi-Peril Workbench specified line of business"""
         if 'occupancycode' not in record:
             return 1  # residential: this is the default behaviour when this field is missing in the workbench
         if record['occupancycode'] == 1000 or 1050 <= record['occupancycode'] <= 1099:
@@ -44,6 +45,13 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             raise LocationLookupException("Unsupported occupancy code " + str(record['occupancycode']))
 
     def _validate(self, uni_exposure):
+        """This validates the uni_exposure as per the Multi-Peril Workbench specification
+                1. we ignore a location that has no postcode if the peril is Hail
+                2. we ignore location that has not geographical specification (address, lat/lon, cresta, ica_zone)
+
+        :param uni_exposure:
+        :return: validated uni_exposure
+        """
         if uni_exposure['address_id'] is None and uni_exposure['med_id'] is None and self._peril_id is not None \
                 and self._peril_id & OEDPeril.Hail.value > 0:
             raise LocationLookupException("Cannot find postcode for location " + str(uni_exposure['loc_id']) +
@@ -63,6 +71,10 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         loc_id, latitude, longitude, address_type, address_id, best_res, country_code, state, zone_type, zone_id,
         catchment_type, catchment_id, lrg_type, lrg_id, med_type, med_id, fine_type, fine_id, lob_id, props, modelled,
         origin_file_line
+
+        :param loc: a row from a OED portfolio
+        :param coverage_type: is a either building [1], contents [3], other [3] (motor) or business interruption [4]
+        :return a uni_exposure object as per the Multi-Peril Workbench specification
         """
         peril_covered = int(loc['locperilscovered']) \
             if 'locperilscovered' in loc and loc['locperilscovered'] is not None else 0  # todo: check that this is ok
@@ -72,7 +84,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure = dict()
         uni_exposure['origin_file_line'] = int(loc['locnumber'])
         uni_exposure['lob_id'] = self._get_lob_id(loc)
-        uni_exposure['cover_id'] = coverage_type
+        uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
 
         try:
             uni_exposure['lrg_id'] = int(loc['locuserdef2']) if 'locuserdef2' in loc else None

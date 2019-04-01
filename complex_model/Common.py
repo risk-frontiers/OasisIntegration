@@ -176,3 +176,14 @@ def to_db_column_name(res):
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
         return "code"
     raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
+
+
+def oed_to_rf_coverage(oed_cover):
+    if oed_cover == 1:
+        return 1  # Building
+    if oed_cover == 2:
+        return 4  # Motor
+    if oed_cover == 3:
+        return 2  # Contents
+    if oed_cover == 4:
+        return 3  # Business Interruption
