@@ -74,7 +74,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
         :param loc: a row from a OED portfolio
         :param coverage_type: is a either building [1], contents [3], other [3] (motor) or business interruption [4]
-        :return a uni_exposure object as per the Multi-Peril Workbench specification
+        :return: a uni_exposure object as per the Multi-Peril Workbench specification
         """
         peril_covered = int(loc['locperilscovered']) \
             if 'locperilscovered' in loc and loc['locperilscovered'] is not None else 0  # todo: check that this is ok

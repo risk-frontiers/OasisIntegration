@@ -153,38 +153,43 @@ ADDRESS_COLUMN_AUTOPOPULATE = [EnumResolution.Latitude, EnumResolution.Longitude
 
 
 def fill_resolution_from_address_id(con, cur):
-        address_fill_sql = """INSERT INTO u_exposure
-                    SELECT a.loc_id, 
-                    CASE WHEN a.latitude IS NULL OR a.latitude = 0 THEN b.latitude ELSE a.latitude END latitude,
-                    CASE WHEN a.longitude IS NULL OR a.longitude = 0 THEN b.longitude ELSE a.longitude END longitude,
-                    a.address_type,
-                    a.address_id,
-                    a.best_res,
-                    a.country_code,
-                    CASE WHEN a.[state] IS NULL THEN b.[state] ELSE a.[state] END [state],
-                    2 zone_type,
-                    CASE WHEN a.zone_id IS NULL THEN b.cresta ELSE a.zone_id END zone_id,		
-                    4 catchment_type,
-                    CASE WHEN a.catchment_id IS NULL THEN b.catchment_id ELSE a.catchment_id END catchment_id,
-                    3 lrg_type,
-                    CASE WHEN a.lrg_id IS NULL THEN b.ica_zone ELSE a.lrg_id END lrg_id,
-                    1 med_type,
-                    CASE WHEN a.med_id IS NULL THEN b.postcode ELSE a.med_id END med_id,
-                    a.fine_type,
-                    a.fine_id,
-                    a.lob_id,
-                    a.props,
-                    a.modelled,
-                    a.origin_file_line
-            FROM u_exposure_tmp a INNER JOIN rf_address b ON a.address_id = b.address_id 
-            WHERE NOT a.address_id IS NULL AND country_code = "au" AND 
-                (a.latitude = 0 OR a.latitude IS NULL OR a.longitude = 0 or a.longitude IS NULL)
-            UNION ALL SELECT * FROM u_exposure_tmp WHERE NOT (NOT address_id IS NULL AND country_code = "au" AND 
-                (latitude = 0 OR latitude IS NULL OR longitude = 0 or longitude IS NULL));"""
-        lookup_cond = """NOT a.address_id IS NULL AND country_code = "au" AND (a.latitude = 0 OR a.longitude = 0)"""
-        address_fill_sql = address_fill_sql.format(lookup_cond)
-        cur.execute(address_fill_sql)
-        con.commit()
+    """This function populate rows with valid GNAF IDs (not lat/lon)
+
+    :param con: sqlite connection to the database containing the exposure table
+    :param cur: sqlite cursor
+    """
+    address_fill_sql = """INSERT INTO u_exposure
+                SELECT a.loc_id, 
+                CASE WHEN a.latitude IS NULL OR a.latitude = 0 THEN b.latitude ELSE a.latitude END latitude,
+                CASE WHEN a.longitude IS NULL OR a.longitude = 0 THEN b.longitude ELSE a.longitude END longitude,
+                a.address_type,
+                a.address_id,
+                a.best_res,
+                a.country_code,
+                CASE WHEN a.[state] IS NULL THEN b.[state] ELSE a.[state] END [state],
+                2 zone_type,
+                CASE WHEN a.zone_id IS NULL THEN b.cresta ELSE a.zone_id END zone_id,		
+                4 catchment_type,
+                CASE WHEN a.catchment_id IS NULL THEN b.catchment_id ELSE a.catchment_id END catchment_id,
+                3 lrg_type,
+                CASE WHEN a.lrg_id IS NULL THEN b.ica_zone ELSE a.lrg_id END lrg_id,
+                1 med_type,
+                CASE WHEN a.med_id IS NULL THEN b.postcode ELSE a.med_id END med_id,
+                a.fine_type,
+                a.fine_id,
+                a.lob_id,
+                a.props,
+                a.modelled,
+                a.origin_file_line
+        FROM u_exposure_tmp a INNER JOIN rf_address b ON a.address_id = b.address_id 
+        WHERE NOT a.address_id IS NULL AND country_code = "au" AND 
+            (a.latitude = 0 OR a.latitude IS NULL OR a.longitude = 0 or a.longitude IS NULL)
+        UNION ALL SELECT * FROM u_exposure_tmp WHERE NOT (NOT address_id IS NULL AND country_code = "au" AND 
+            (latitude = 0 OR latitude IS NULL OR longitude = 0 or longitude IS NULL));"""
+    lookup_cond = """NOT a.address_id IS NULL AND country_code = "au" AND (a.latitude = 0 OR a.longitude = 0)"""
+    address_fill_sql = address_fill_sql.format(lookup_cond)
+    cur.execute(address_fill_sql)
+    con.commit()
 
 
 def fill_resolution_from_lat_long(con, cur):

@@ -45,16 +45,16 @@ class EnumPeril(Enum):
         Volcano = 5
 
 
-def oed_to_rf_peril(oedPerilID):
-    if oedPerilID == 8192:
+def oed_to_rf_peril(oed_peril_id):
+    if oed_peril_id == 8192:
         return EnumPeril.Hail
-    if oedPerilID == 1:
+    if oed_peril_id == 1:
         return EnumPeril.Quake
-    if oedPerilID == 512:
+    if oed_peril_id == 512:
         return EnumPeril.RiverineFlood
-    if oedPerilID == 262144:
+    if oed_peril_id == 262144:
         return EnumPeril.Bushfire
-    if oedPerilID == 64:
+    if oed_peril_id == 64:
         return EnumPeril.Cyclone
 
 
