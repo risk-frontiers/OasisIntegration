@@ -11,6 +11,7 @@ from backports.tempfile import TemporaryDirectory
 from oasislmf.utils.exceptions import OasisException
 from OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string
 from GulcalcToBin import gulcalc_sqlite_to_bin
+from Common import PerilSet
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -100,6 +101,7 @@ def main():
     number_of_samples = analysis_settings_json['analysis_settings']['number_of_samples']
 
     # Access any model specific settings for the analysis
+    model_version_id = analysis_settings_json['analysis_settings']['model_version_id'].lower()
     model_settings = analysis_settings_json['analysis_settings']['model_settings']
 
     # Read the inputs, including the extended items
@@ -114,7 +116,7 @@ def main():
 
     with TemporaryDirectory() as working_dir:
         if _DEBUG:
-            working_dir = "/tmp/oasis"
+            working_dir = "/hadoop/oasis/tmp"
         # Write out RF canonical input files
         risk_platform_dir = os.path.join("/var/oasis/model_data", "RISKFRONTIERS/HAILAUS")  # todo: make this generic
         if not os.path.isfile(os.path.join(risk_platform_dir, DEFAULT_DB)):
@@ -125,7 +127,7 @@ def main():
         num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_dir)
 
         # Call Risk.Platform.Core
-        max_event_id = 135000000  # todo: find this somewhere
+        max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
         # 1 generate oasis_param.json
         oasis_param = {
             "Peril": 2,

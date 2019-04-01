@@ -59,12 +59,12 @@ def oed_to_rf_peril(oedPerilID):
 
 
 PerilSet = {
-    "hailaus": {"OED_ID": 8192, "COUNTRY": "au"},
-    "quakeaus": {"OED_ID": 1, "COUNTRY": "au"},
-    "floodaus": {"OED_ID": 512, "COUNTRY": "au"},
-    "fireaus": {"OED_ID": 262144, "COUNTRY": "au"},
-    "cyclaus": {"OED_ID": 64, "COUNTRY": "au"},
-    "quakenz": {"OED_ID": 1, "COUNTRY": "nz"},
+    "hailaus": {"OED_ID": 8192, "COUNTRY": "au", "MAX_EVENT_INDEX": 134704731},
+    "quakeaus": {"OED_ID": 1, "COUNTRY": "au", "MAX_EVENT_INDEX": 1000252},
+    "floodaus": {"OED_ID": 512, "COUNTRY": "au", "MAX_EVENT_INDEX": 535000},
+    "fireaus": {"OED_ID": 262144, "COUNTRY": "au", "MAX_EVENT_INDEX": 291577},
+    "cyclaus": {"OED_ID": 64, "COUNTRY": "au", "MAX_EVENT_INDEX": 371653},
+    "quakenz": {"OED_ID": 1, "COUNTRY": "nz", "MAX_EVENT_INDEX": 10441016},
 }
 PerilSet = {x: {"OED_ID": PerilSet[x]["OED_ID"],
                 "COUNTRY": PerilSet[x]["COUNTRY"],
