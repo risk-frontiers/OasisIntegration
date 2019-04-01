@@ -89,7 +89,7 @@ def main():
     if not os.path.exists(inputs_fp):
         raise Exception('Inputs directory does not exist')
 
-    complex_items_filename = args.complex_items_filename
+    complex_items_filename = "complex_items.csv"  # args.complex_items_filename
     complex_items_fp = os.path.join(inputs_fp, complex_items_filename)
     if not os.path.exists(complex_items_fp):
         raise Exception('Complex items file does not exist')
@@ -101,65 +101,64 @@ def main():
     model_settings = analysis_settings_json['analysis_settings']['model_settings']
 
     # Read the inputs, including the extended items
-    with os.popen('coveragetocsv < {}'.format(
-            os.path.join(inputs_fp, 'coverages.bin'))) as p:
+    with open(os.path.join(inputs_fp, 'coverages.csv')) as p:
         coverages_pd = pd.read_csv(p)
 
-    with os.popen('gulsummaryxreftocsv < {}'.format(
-            os.path.join(inputs_fp, 'gulsummaryxref.bin'))) as p:
-        gulsummaryxref_pd = pd.read_csv(p)
+    # with open(os.path.join(inputs_fp, 'gulsummaryxref.csv')) as p:
+    #    gulsummaryxref_pd = pd.read_csv(p)
 
-    with os.popen('complex_itemtocsv < {}'.format(complex_items_fp)) as p:
+    with open(complex_items_fp) as p:
         items_pd = pd.read_csv(p)
 
-    with TemporaryDirectory() as working_dir:
-        # Write out RF canonical input files
-        oasislmf = json.load('oasislmf.json')
-        risk_platform_dir = os.path.join(oasislmf['model_data_path'], "RISKFRONTIERS/HAILAUS")
-        if not os.path.isfile(os.path.join(risk_platform_dir, DEFAULT_DB)):
-            raise FileNotFoundError("Model data not set correctly")
-        temp_db_fp = os.path.join(working_dir, DEFAULT_DB)
+    #with TemporaryDirectory() as working_dir:
+    # Write out RF canonical input files
+    working_dir = "/tmp/oasis"
+    risk_platform_dir = os.path.join("/var/oasis/model_data", "RISKFRONTIERS/HAILAUS")  # todo: make this generic
+    if not os.path.isfile(os.path.join(risk_platform_dir, DEFAULT_DB)):
+        raise FileNotFoundError("Model data not set correctly")
+    temp_db_fp = os.path.join(working_dir, DEFAULT_DB)
 
-        # populate RF exposure and coverage datatable
-        num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, os.path.join(risk_platform_dir, "data"))
+    # populate RF exposure and coverage datatable
+    num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_dir)
 
-        # Call Risk.Platform.Core
-        max_event_id = 130000  # todo: find this somewhere
-        # 1 generate oasis_param.json
-        oasis_param = {
-            "Peril": 2,
-            "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
-            "CoverageConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
-            "ResultConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
-            "MinEventId": int((event_batch - 1) * max_event_id / max_event_batch) + 1,
-            "MaxEventId": int(event_batch * max_event_id / max_event_batch),
-            "NumSamples": int(number_of_samples),
-            "CountryCode": "au",
-            "RiskPlatformDir": risk_platform_dir,
-            "WorkingDir": inputs_fp,
-            "NumRows": num_rows,
-            "PortfolioId": 1,
-            "IndividualRiskMode": model_settings['irm'] if 'irm' in model_settings else False,
-            "StaticMotor": model_settings['static_motor'] if 'static_motor' in model_settings else False,
-        }
+    # Call Risk.Platform.Core
+    max_event_id = 135000000  # todo: find this somewhere
+    # 1 generate oasis_param.json
+    oasis_param = {
+        "Peril": 2,
+        "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
+        "CoverageConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
+        "ResultConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
+        "MinEventId": int((event_batch - 1) * max_event_id / max_event_batch) + 1,
+        "MaxEventId": int(event_batch * max_event_id / max_event_batch),
+        "NumSamples": int(number_of_samples),
+        "CountryCode": "au",  # todo: get this from somewhere
+        "ComplexModelDirectory": "/var/oasis/complex_model",
+        "RiskPlatformData": risk_platform_dir,
+        "WorkingDirectory": working_dir,
+        "NumRows": num_rows,
+        "PortfolioId": 1,
+        "IndividualRiskMode": model_settings['irm'] if 'irm' in model_settings else False,
+        "StaticMotor": model_settings['static_motor'] if 'static_motor' in model_settings else False,
+    }
 
-        oasis_param_fp = os.path.join(inputs_fp, "oasis_param.json")
-        with open(oasis_param_fp, 'w') as param:
-            param.writelines(json.dumps(oasis_param))
+    oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
+    with open(oasis_param_fp, 'w') as param:
+        param.writelines(json.dumps(oasis_param))
 
-        # 2 call dotnet Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
-        # todo: replace with self contained call
-        cmd_str = "dotnet {} --oasis -c {}".format(os.path.join(oasis_param["RiskPlatformDir"], "Risk.Platform.Core",
-                                                                "Risk.Platform.Core.dll"), oasis_param_fp)
-        try:
-            subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
-            if do_coverage_output:
-                gulcalc_sqlite_to_bin(temp_db_fp, output_item, int(number_of_samples), 2)
-            elif do_item_output:
-                gulcalc_sqlite_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 1)
+    # 2 call dotnet Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
+    # todo: replace with self contained call
+    cmd_str = "{} --oasis -c {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
+                                                     "Risk.Platform.Core", "Risk.Platform.Core"), oasis_param_fp)
+    try:
+        subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
+        if do_coverage_output:
+            gulcalc_sqlite_to_bin(temp_db_fp, output_item, int(number_of_samples), 2)
+        elif do_item_output:
+            gulcalc_sqlite_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 1)
 
-        except subprocess.CalledProcessError as e:
-            raise OasisException(e)
+    except subprocess.CalledProcessError as e:
+        raise OasisException(e)
 
 
 if __name__ == "__main__":

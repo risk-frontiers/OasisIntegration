@@ -78,5 +78,5 @@ class PostcodeLookup(object):
 
 if __name__ == "__main__":
     pl = PostcodeLookup("/home/AD.RISKFRONTIERS.COM/tahiry/oasis/keys_data")
-    loc = {'lat': -33.8688, 'lon': 151.2093}
-    print(pl.get_postcode(loc['lon'], loc['lat']))
+    test_loc = {'lat': -33.8688, 'lon': 151.2093}
+    print(pl.get_postcode(test_loc['lon'], test_loc['lat']))

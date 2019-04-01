@@ -3,6 +3,7 @@ import json
 from enum import Enum
 import sqlite3
 from shutil import copyfile
+from Common import EnumResolution, to_uni_scale_id, to_uni_scale_type, to_db_column_name
 
 """
 This script is used to transform oasis item and coverage files into cannonical rf item and coverage files stored in a sqlite database
@@ -53,28 +54,6 @@ RF_DEFAULT_COVERAGE = dict(
     [(col, RF_DEFAULT_COVERAGE_SQLITE_DEF[col]["default"]) for col in RF_DEFAULT_COVERAGE_SQLITE_DEF])
 
 
-class EnumResolution(Enum):
-    Undefined = 255
-    LocId = 254
-    All = 253
-    Address = 0
-    Postcode = 1
-    Cresta = 2
-    IcaZone = 3
-    Catchment = 4
-    State = 5
-    Ccd = 6
-    LatLong = 7
-    Latitude = 8
-    Longitude = 9
-    Code = 10
-    Todofuken = 11
-    Shikuchoson = 12
-    VolcanoGrid = 13
-    Country = 14
-    BeeHive = 15
-
-
 def get_connection_string(db_fp):
     return "Data Source=" + db_fp + ";Version=3;"
 
@@ -102,13 +81,13 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
     con = sqlite3.connect(sqlite_fp)
     cur = con.cursor()
 
+    cur.execute("CREATE TABLE u_exposure_tmp (" + ",".join(
+        ["[" + col + "] " + RF_DEFAULT_ITEM_SQLITE_DEF[col]["datatype"] for col in RF_DEFAULT_ITEM_SQLITE_DEF]) + ");")
     cur.execute("CREATE TABLE u_exposure (" + ",".join(
         ["[" + col + "] " + RF_DEFAULT_ITEM_SQLITE_DEF[col]["datatype"] for col in RF_DEFAULT_ITEM_SQLITE_DEF]) + ");")
-    cur.execute("CREATE INDEX u_exposure_idx ON u_exposure (origin_file_line);")
     cur.execute("CREATE TABLE u_coverage (" + ",".join(
         ["[" + col + "] " + RF_DEFAULT_COVERAGE_SQLITE_DEF[col]["datatype"] for col in
          RF_DEFAULT_COVERAGE_SQLITE_DEF]) + ");")
-    cur.execute("CREATE INDEX u_coverage_idx ON u_coverage (origin_file_line);")
 
     line_id = 0
     items = []
@@ -128,7 +107,7 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
                     rf_item[key] = model_data[key]
 
         if not rf_item['loc_id']:
-            # rf_item['loc_id'] = "rf_loc_" + str(model_data['origin_file_line'])
+            # rf_item['loc_id'] = "rf_loc_" + str(model_data['loc_id'])
             rf_item['loc_id'] = item_row['item_id']
 
         # building coverage row
@@ -146,10 +125,67 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
         items.append(tuple(rf_item.values()))
         coverages.append(tuple(rf_coverage.values()))
 
-    item_sql = "INSERT INTO u_exposure VALUES (" + ",".join(["?" for c in RF_DEFAULT_ITEM]) + ");";
-    coverage_sql = "INSERT INTO u_coverage VALUES (" + ",".join(["?" for c in RF_DEFAULT_COVERAGE]) + ");";
+    item_sql = "INSERT INTO u_exposure_tmp VALUES (" + ",".join(["?" for c in RF_DEFAULT_ITEM]) + ");"
+    coverage_sql = "INSERT INTO u_coverage VALUES (" + ",".join(["?" for c in RF_DEFAULT_COVERAGE]) + ");"
     cur.executemany(item_sql, items)
     cur.executemany(coverage_sql, coverages)
     con.commit()
+
+    # spatial analysis ...
+    fill_resolution_from_address_id(con, cur)
+    fill_resolution_from_lat_long(con, cur)
+
+    # post processing
+    delete_temp_exposure = "DROP TABLE u_exposure_tmp;"
+    ofl_exposure_index = "CREATE INDEX ofl_exposure_index ON u_exposure (origin_file_line);"
+    ofl_coverage_index = "CREATE INDEX ofl_coverage_index ON u_coverage (origin_file_line);"
+    cur.execute(delete_temp_exposure)
+    cur.execute(ofl_exposure_index)
+    cur.execute(ofl_coverage_index)
+    con.commit()
+
     con.close()
     return line_id
+
+
+ADDRESS_COLUMN_AUTOPOPULATE = [EnumResolution.Latitude, EnumResolution.Longitude, EnumResolution.Postcode,
+                               EnumResolution.Cresta, EnumResolution.State]
+
+
+def fill_resolution_from_address_id(con, cur):
+        address_fill_sql = """INSERT INTO u_exposure
+                    SELECT a.loc_id, 
+                    CASE WHEN a.latitude IS NULL OR a.latitude = 0 THEN b.latitude ELSE a.latitude END latitude,
+                    CASE WHEN a.longitude IS NULL OR a.longitude = 0 THEN b.longitude ELSE a.longitude END longitude,
+                    a.address_type,
+                    a.address_id,
+                    a.best_res,
+                    a.country_code,
+                    CASE WHEN a.[state] IS NULL THEN b.[state] ELSE a.[state] END [state],
+                    2 zone_type,
+                    CASE WHEN a.zone_id IS NULL THEN b.cresta ELSE a.zone_id END zone_id,		
+                    4 catchment_type,
+                    CASE WHEN a.catchment_id IS NULL THEN b.catchment_id ELSE a.catchment_id END catchment_id,
+                    3 lrg_type,
+                    CASE WHEN a.lrg_id IS NULL THEN b.ica_zone ELSE a.lrg_id END lrg_id,
+                    1 med_type,
+                    CASE WHEN a.med_id IS NULL THEN b.postcode ELSE a.med_id END med_id,
+                    a.fine_type,
+                    a.fine_id,
+                    a.lob_id,
+                    a.props,
+                    a.modelled,
+                    a.origin_file_line
+            FROM u_exposure_tmp a INNER JOIN rf_address b ON a.address_id = b.address_id 
+            WHERE NOT a.address_id IS NULL AND country_code = "au" AND 
+                (a.latitude = 0 OR a.latitude IS NULL OR a.longitude = 0 or a.longitude IS NULL)
+            UNION ALL SELECT * FROM u_exposure_tmp WHERE NOT (NOT address_id IS NULL AND country_code = "au" AND 
+                (latitude = 0 OR latitude IS NULL OR longitude = 0 or longitude IS NULL));"""
+        lookup_cond = """NOT a.address_id IS NULL AND country_code = "au" AND (a.latitude = 0 OR a.longitude = 0)"""
+        address_fill_sql = address_fill_sql.format(lookup_cond)
+        cur.execute(address_fill_sql)
+        con.commit()
+
+
+def fill_resolution_from_lat_long(con, cur):
+    pass  # todo: required when implementing flood to get catchment id etc

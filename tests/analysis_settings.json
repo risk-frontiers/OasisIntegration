@@ -36,12 +36,12 @@
             }
         ],
         "model_settings": {
-            "peril_wind": true
+            "peril_hail": true
          },
-        "model_version_id": "ComplexModelExample",
-        "module_supplier_id": "OasisLMF",
+        "model_version_id": "HailAUS",
+        "module_supplier_id": "RiskFrontiers",
         "number_of_samples": 10,
         "prog_id": 1,
-        "source_tag": "Wind"
+        "source_tag": "HailAUS"
     }
 }

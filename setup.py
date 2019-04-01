@@ -3,13 +3,13 @@ import complex_model
 import oasislmf.utils 
 
 setup(
-    name='OasisLMF_ComplexModelExample',
+    name='RiskFrontiers_HailAUS',
     version='0.0.1',
     entry_points={
         'console_scripts': [
             'complex_itemtobin=oasislmf.model_execution.complex_items_to_bin:main',
             'complex_itemtocsv=oasislmf.model_execution.complex_items_to_csv:main',
-            'OasisLMF_ComplexModelExample_gulcalc=complex_model.OasisLMF_ComplexModelExample_gulcalc:main'
+            'RiskFrontiers_HailAUS_gulcalc=complex_model.RiskFrontiers_HailAUS_gulcalc:main'
         ]
     }
 )
