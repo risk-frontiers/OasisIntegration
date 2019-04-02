@@ -60,12 +60,12 @@ def gulcalc_sqlite_to_bin(db_fp, output, num_sample, stream_type=1):
 
     if stream_type not in (1, 2) or not num_sample > 0:
         return
-    header = (1, 0, stream_type)
-    s = struct.Struct('>BbH')
-    output.write(s.pack(*header))
-    sample = (num_sample,)
-    s = struct.Struct('I')
-    output.write(s.pack(*sample))
+    if stream_type == 1:
+        stream_id = (1 << 24) | 1
+    if stream_type == 2:
+        stream_id = (1 << 24) | 2
+    output.write(struct.pack('i', stream_id))
+    output.write(struct.pack('i', num_sample))
 
     rows = cur.fetchall()
     last_key = (0, 0)

@@ -86,6 +86,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
 
+        # ica zone
         try:
             uni_exposure['lrg_id'] = int(loc['locuserdef2']) if 'locuserdef2' in loc else None
             uni_exposure['lrg_type'] = EnumResolution.IcaZone.value \
@@ -95,6 +96,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         except (ValueError, TypeError):
             uni_exposure['lrg_id'] = None
 
+        # cresta
         try:
             uni_exposure['zone_id'] = int(loc['lowrescresta']) if 'lowrescresta' in loc else None
             uni_exposure['zone_type'] = EnumResolution.Cresta.value \
@@ -104,6 +106,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         except (ValueError, TypeError):
             uni_exposure['zone_id'] = None
 
+        # postcode
         try:
             uni_exposure['med_id'] = int(loc['postalcode']) if 'postalcode' in loc else None
             uni_exposure['med_type'] = EnumResolution.Postcode.value \
@@ -116,6 +119,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         if 'locnumber' not in loc:
             raise LocationLookupException("Location Number is required but is missing in the OED file")
 
+        # address
         try:
             uni_exposure['address_id'] = loc['locuserdef1'] if 'locuserdef1' in loc else None
             uni_exposure['address_type'] = EnumResolution.Address.value if uni_exposure['address_id'] else None
@@ -124,7 +128,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         except (ValueError, TypeError):
             uni_exposure['address_id'] = None
 
-        # Lat/Lon
+        # lat/lon
         uni_exposure['latitude'] = None
         uni_exposure['longitude'] = None
         if loc['longitude'] and loc['latitude']:

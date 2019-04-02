@@ -33,6 +33,13 @@ else:
 _DEBUG = False
 
 
+def clean_directory(dir_path):
+    import shutil
+    shutil.rmtree(dir_path)
+    import os
+    os.mkdir(dir_path)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Ground up loss generation.')
     parser.add_argument(
@@ -93,8 +100,9 @@ def main():
     if not os.path.exists(inputs_fp):
         raise Exception('Inputs directory does not exist')
 
+    inputs_fp_csv = os.path.join(inputs_fp, "csv")
     complex_items_filename = "complex_items.csv"  # args.complex_items_filename
-    complex_items_fp = os.path.join(inputs_fp, complex_items_filename)
+    complex_items_fp = os.path.join(inputs_fp_csv, complex_items_filename)
     if not os.path.exists(complex_items_fp):
         raise Exception('Complex items file does not exist')
 
@@ -106,7 +114,7 @@ def main():
     model_settings = analysis_settings_json['analysis_settings']['model_settings']
 
     # Read the inputs, including the extended items
-    with open(os.path.join(inputs_fp, 'coverages.csv')) as p:
+    with open(os.path.join(inputs_fp_csv, 'coverages.csv')) as p:
         coverages_pd = pd.read_csv(p)
 
     # with open(os.path.join(inputs_fp, 'gulsummaryxref.csv')) as p:
@@ -118,6 +126,7 @@ def main():
     with TemporaryDirectory() as working_dir:
         if _DEBUG:
             working_dir = "/hadoop/oasis/tmp"
+            clean_directory(working_dir)
         # Write out RF canonical input files
         risk_platform_dir = os.path.join("/var/oasis/model_data", "RISKFRONTIERS/HAILAUS")  # todo: make this generic
         if not os.path.isfile(os.path.join(risk_platform_dir, DEFAULT_DB)):
@@ -168,7 +177,7 @@ def main():
             subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
             if do_item_output:
                 gulcalc_sqlite_to_bin(temp_db_fp, output_item, int(number_of_samples), 1)
-            elif do_coverage_output:
+            if do_coverage_output:
                 gulcalc_sqlite_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 2)
 
         except subprocess.CalledProcessError as e:
