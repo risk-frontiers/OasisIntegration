@@ -73,8 +73,7 @@ def gulcalc_sqlite_to_bin(db_fp, output, num_sample, stream_type=1):
         current_key = (int(row[0]), int(row[1]))
         if not last_key == current_key:
             if not last_key == (0, 0):
-                s = struct.Struct('Q')  # separator
-                output.write(s.pack(*(0,)))
+                output.write(struct.pack('Q', 0))  # separator
             s = struct.Struct('II')
             output.write(s.pack(*current_key))
             last_key = (int(row[0]), int(row[1]))
