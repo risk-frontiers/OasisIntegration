@@ -30,7 +30,7 @@ else:
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
-_DEBUG = True
+_DEBUG = False
 
 
 def main():
@@ -166,10 +166,10 @@ def main():
                                                         log_file)
         try:
             subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
-            if do_coverage_output:
-                gulcalc_sqlite_to_bin(temp_db_fp, output_item, int(number_of_samples), 2)
-            elif do_item_output:
-                gulcalc_sqlite_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 1)
+            if do_item_output:
+                gulcalc_sqlite_to_bin(temp_db_fp, output_item, int(number_of_samples), 1)
+            elif do_coverage_output:
+                gulcalc_sqlite_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 2)
 
         except subprocess.CalledProcessError as e:
             raise OasisException(e)
