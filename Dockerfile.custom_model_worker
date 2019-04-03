@@ -17,4 +17,4 @@ VOLUME ["/var/oasis/model_data"]
 #COPY ./oasislmf.json /var/oasis/custom/
 #COPY ./analysis_settings.json /var/oasis/custom/
 #COPY ./tests /var/oasis/custom/tests
-ENTRYPOINT /bin/bash
+#ENTRYPOINT /bin/bash
