@@ -4,3 +4,4 @@ media/
 db-data/
 data/
 docker-shared-fs/
+model_data/
