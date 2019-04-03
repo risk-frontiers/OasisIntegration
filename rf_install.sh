@@ -36,6 +36,7 @@ sed -i 's|:latest|:${UI_VER}|g' docker-compose.yml
 cd $SCRIPT_DIR
 
 # Start UI
+cp $SCRIPT_DIR/model_resource.json $SCRIPT_DIR/$GIT_UI/model_resource.json
 docker network create shiny-net
 docker pull coreoasis/oasisui_app:$UI_VER
 docker-compose -f $SCRIPT_DIR/$GIT_UI/docker-compose.yml up -d
