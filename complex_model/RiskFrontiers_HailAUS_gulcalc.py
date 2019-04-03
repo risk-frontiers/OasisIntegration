@@ -9,9 +9,9 @@ import pandas as pd
 
 from backports.tempfile import TemporaryDirectory
 from oasislmf.utils.exceptions import OasisException
-from OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string
-from GulcalcToBin import gulcalc_sqlite_to_bin
-from Common import PerilSet
+from .OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string
+from .GulcalcToBin import gulcalc_sqlite_to_bin
+from .Common import PerilSet
 from datetime import datetime
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
