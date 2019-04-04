@@ -1,4 +1,4 @@
-## Python translation of QuadTree from Risk.Platform
+# Python translation of QuadTree from Risk.Platform.Standard
 
 
 class QuadTree(object):  # in decimal degrees dist from centroid to edge

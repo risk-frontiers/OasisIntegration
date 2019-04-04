@@ -82,24 +82,3 @@ def gulcalc_sqlite_to_bin(db_fp, output, num_sample, stream_type=1):
         t = s.pack(*losses)
         output.write(t)
 
-
-if __name__ == "__main__":
-
-    PY3K = sys.version_info >= (3, 0)
-
-    if PY3K:
-        std_output = sys.stdout.buffer
-    else:
-        # Python 2 on Windows opens sys.stdin in text mode, and
-        # binary data that read from it becomes corrupted on \r\n
-        if sys.platform == "win32":
-            # set sys.stdin to binary mode
-            import os
-            import msvcrt
-            msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
-        std_output = sys.stdout
-
-    test_dir = "D:\\OASIS\\tmp\\debug\\precision_issue"
-    import os
-    with open(os.path.join(test_dir,"gulcalc_out.bin"), "wb") as outfile:
-        gulcalc_sqlite_to_bin(os.path.join(test_dir,"riskfrontiersdbAUS_v2_4_1.db"), outfile, 1)

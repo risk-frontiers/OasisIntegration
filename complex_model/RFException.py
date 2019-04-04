@@ -1,5 +1,4 @@
-""" Class containing all custom RF exceptions
-"""
+""" Class containing all custom RF exceptions"""
 
 
 class RFBaseException(Exception):
@@ -10,6 +9,7 @@ class RFBaseException(Exception):
 class LocationLookupException(RFBaseException):
     def __init__(self, message):
         super(LocationLookupException, self).__init__(message)
+
 
 class ArgumentOutOfRangeException(RFBaseException):
     def __init__(self, message):

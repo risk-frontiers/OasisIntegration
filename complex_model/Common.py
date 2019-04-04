@@ -34,15 +34,15 @@ class OEDPeril(Enum):
 
 
 class EnumPeril(Enum):
-        Structure = -3
-        MultiPeril = -2
-        Undefined = -1
-        RiverineFlood = 0
-        Bushfire = 1
-        Hail = 2
-        Quake = 3
-        Cyclone = 4
-        Volcano = 5
+    Structure = -3
+    MultiPeril = -2
+    Undefined = -1
+    RiverineFlood = 0
+    Bushfire = 1
+    Hail = 2
+    Quake = 3
+    Cyclone = 4
+    Volcano = 5
 
 
 def oed_to_rf_peril(oed_peril_id):

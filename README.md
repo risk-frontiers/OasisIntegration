@@ -33,9 +33,11 @@ sudo apt update && sudo apt install git docker docker-compose
 git clone https://github.com/OasisLMF/ComplexModelMdk.git
 cd ComplexModelMdk
 ```
-3) Run the deployment script
+3) Extract and copy the model data to ComplexModelMDK/model_data 
+4) Copy the license.txt file into ComplexModelMDK/complex_model
+5) Run the deployment script
 ```
-sudo ./install.sh
+sudo ./rf_install.sh
 ```
 
 4) Access via localhost, using the default `user: admin` `pass: password`
