@@ -30,7 +30,7 @@ else:
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
-_DEBUG = False
+_DEBUG = True
 
 
 def clean_directory(dir_path):
@@ -111,7 +111,7 @@ def main():
 
     # Access any model specific settings for the analysis
     model_version_id = analysis_settings_json['analysis_settings']['model_version_id'].lower()
-    model_settings = analysis_settings_json['analysis_settings']['model_settings']
+    model_settings = analysis_settings_json['model_settings']
 
     # Read the inputs, including the extended items
     with open(os.path.join(inputs_fp_csv, 'coverages.csv')) as p:

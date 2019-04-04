@@ -1,47 +1,42 @@
 {
-    "analysis_settings": {
-        "analysis_tag": 1,
-        "gul_output": true,
-        "gul_summaries": [
-            {
-                "aalcalc": false,
-                "eltcalc": true,
-                "id": 1,
-                "lec_output": false,
-                "leccalc": {
-                    "outputs": {
-                        "full_uncertainty_aep": false,
-                        "full_uncertainty_oep": false
-                    },
-                "return_period_file": true
-                }
-            }
-        ],
-        "gul_threshold": 0,
-        "il_output": true,
-        "il_summaries": [
-            {
-                "aalcalc": false,
-                "eltcalc": false,
-                "id": 1,
-                "summarycalc": true,
-                "lec_output": false,
-                "leccalc": {
-                    "outputs": {
-                        "full_uncertainty_aep": true,
-                        "full_uncertainty_oep": true
-                    },
-                    "return_period_file": true
-                }
-            }
-        ],
-        "model_settings": {
-            "peril_hail": true
-         },
-        "model_version_id": "HailAUS",
-        "module_supplier_id": "RiskFrontiers",
-        "number_of_samples": 10,
-        "prog_id": 1,
-        "source_tag": "HailAUS"
-    }
+  "analysis_settings": {
+    "analysis_tag": 1,
+    "exposure_location": "L:",
+    "gul_threshold": 0,
+    "model_version_id": "HailAUS",
+    "module_supplier_id": "RiskFrontiers",
+    "number_of_samples": 1,
+    "prog_id": 1,
+    "source_tag": "oasis_localhost",
+    "gul_output": true,
+    "gul_summaries": [
+      {
+        "summarycalc": true,
+        "aalcalc": true,
+        "id": 1,
+        "oed_fields": "prog",
+        "lec_output": true,
+        "leccalc": {
+          "return_period_file": true,
+          "outputs": {
+            "full_uncertainty_aep": true,
+            "full_uncertainty_oep": true
+          }
+        }
+      }
+    ],
+    "il_output": false,
+    "ri_output": false
+  },
+  "model_settings": {
+    "event_set": "P",
+    "leakage_factor": 0.5,
+    "peril_wind": true,
+    "demand_surge": true,
+    "peril_quake": true,
+    "peril_flood": true,
+    "peril_surge": false,
+    "event_occurrence_file_id": 1
+  }
 }
+
