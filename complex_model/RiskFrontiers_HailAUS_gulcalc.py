@@ -30,7 +30,7 @@ else:
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
-_DEBUG = True
+_DEBUG = False
 
 
 def clean_directory(dir_path):
