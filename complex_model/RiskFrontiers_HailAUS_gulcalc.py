@@ -154,7 +154,7 @@ def main():
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
             "PortfolioId": 1,
-            "MaxDegreeOfParallelism": 40,
+            "MaxDegreeOfParallelism": 20,
             "IndividualRiskMode": model_settings['irm'] if 'irm' in model_settings else False,
             "StaticMotor": model_settings['static_motor'] if 'static_motor' in model_settings else False,
         }
