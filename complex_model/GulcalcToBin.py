@@ -1,5 +1,4 @@
 import csv
-import sys
 import struct
 import sqlite3
 

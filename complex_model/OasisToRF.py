@@ -1,9 +1,8 @@
 import os
 import json
-from enum import Enum
 import sqlite3
 from shutil import copyfile
-from Common import EnumResolution, to_uni_scale_id, to_uni_scale_type, to_db_column_name
+from .Common import EnumResolution
 
 """
 This script is used to transform oasis item and coverage files into cannonical rf item and coverage files stored in a sqlite database

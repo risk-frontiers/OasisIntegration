@@ -2,7 +2,7 @@
 
 import csv, json
 from shapely.geometry import shape, Point
-from os import getenv, path
+from os import path
 from .QuadTree import QuadTree
 
 
