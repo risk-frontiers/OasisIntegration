@@ -14,7 +14,16 @@ git clone https://github.com/risk-frontiers/OasisComplexModel.git
 cd OasisComplexModel
 ```
 3) Extract the model data archive and copy your license.txt into the model_data root folder
-4) Copy model_data inside OasisComplexModel
+4) Copy model_data inside OasisComplexModel. The folder structure should be as follows
+```
+admin@ubuntu:/var/oasis/OasisComplexModel$ tree
+.
+├── complex_model
+│   └── Risk.Platform.Core
+├── rf_install.sh
+├── model_data
+│   ├── license.txt
+```
 5) Run the deployment script
 ```
 ./rf_install.sh
