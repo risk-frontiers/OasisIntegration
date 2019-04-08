@@ -16,7 +16,7 @@ cd OasisComplexModel
 3) Extract the model data archive and copy your license.txt into the model_data root folder
 4) Copy model_data inside OasisComplexModel. The folder structure should be as follows
 ```
-admin@ubuntu:/var/oasis/OasisComplexModel$ tree
+user@ubuntu:/var/oasis/OasisComplexModel$ tree
 .
 ├── complex_model
 │   └── Risk.Platform.Core
