@@ -36,6 +36,6 @@ user@ubuntu:/var/oasis/OasisComplexModel$ tree
 
 
 ### Notes: 
-* A more detailed documentation can be found in [oasis_complex_model_manual.pdf](https://github.com/risk-frontiers/OasisComplexModel/blob/master/oasis_complex_model_manual.pdf).
+* A more detailed documentation can be found in [oasis_integration.pdf](https://github.com/risk-frontiers/OasisComplexModel/blob/master/oasis_integration.pdf).
 * A valid Risk Frontiers license is required to run the integrated model. Please contact 
 [Risk Frontiers](mailto:info@riskfrontiers.com) for more information. 
