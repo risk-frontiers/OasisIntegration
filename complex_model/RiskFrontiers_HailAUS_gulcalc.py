@@ -14,7 +14,7 @@ from GulcalcToBin import gulcalc_sqlite_to_bin
 from Common import PerilSet
 from datetime import datetime
 
-_DEBUG = True
+_DEBUG = False
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -137,7 +137,7 @@ def main():
         num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_data)
 
         # generate oasis_param.json
-        complex_model_directory = "/var/oasis/complex_model"
+        complex_model_directory = "/var/oasis/complex_model"  # todo: make this generic
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
         oasis_param = {
             "Peril": 2,
@@ -149,7 +149,7 @@ def main():
             "NumSamples": int(number_of_samples),
             "CountryCode": "au",  # todo: get this from somewhere
             "ComplexModelDirectory": complex_model_directory,
-            "LicenseFile": os.path.join(complex_model_directory, "license.txt"),
+            "LicenseFile": os.path.join(risk_platform_data, "license.txt"),
             "RiskPlatformData": risk_platform_data,
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
