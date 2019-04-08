@@ -9,10 +9,12 @@ import pandas as pd
 
 from backports.tempfile import TemporaryDirectory
 from oasislmf.utils.exceptions import OasisException
-from .OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string
-from .GulcalcToBin import gulcalc_sqlite_to_bin
-from .Common import PerilSet
+from OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string, is_valid_model_data
+from GulcalcToBin import gulcalc_sqlite_to_bin
+from Common import PerilSet
 from datetime import datetime
+
+_DEBUG = True
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -29,8 +31,6 @@ else:
 
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
-
-_DEBUG = False
 
 
 def clean_directory(dir_path):
@@ -128,13 +128,13 @@ def main():
             working_dir = "/hadoop/oasis/tmp"
             clean_directory(working_dir)
         # Write out RF canonical input files
-        risk_platform_dir = os.path.join("/var/oasis/model_data", "RISKFRONTIERS/HAILAUS")  # todo: make this generic
-        if not os.path.isfile(os.path.join(risk_platform_dir, DEFAULT_DB)):
-            raise FileNotFoundError("Model data not set correctly")
+        risk_platform_data = os.path.join("/var/oasis/model_data")  # todo: make this generic
+        if not is_valid_model_data(risk_platform_data):
+            raise FileNotFoundError("Model data not set correctly: " + risk_platform_data)
         temp_db_fp = os.path.join(working_dir, DEFAULT_DB)
 
         # populate RF exposure and coverage datatable
-        num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_dir)
+        num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_data)
 
         # generate oasis_param.json
         complex_model_directory = "/var/oasis/complex_model"
@@ -150,7 +150,7 @@ def main():
             "CountryCode": "au",  # todo: get this from somewhere
             "ComplexModelDirectory": complex_model_directory,
             "LicenseFile": os.path.join(complex_model_directory, "license.txt"),
-            "RiskPlatformData": risk_platform_dir,
+            "RiskPlatformData": risk_platform_data,
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
             "PortfolioId": 1,

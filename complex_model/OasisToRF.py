@@ -3,7 +3,7 @@ import json
 from enum import Enum
 import sqlite3
 from shutil import copyfile
-from .Common import EnumResolution, to_uni_scale_id, to_uni_scale_type, to_db_column_name
+from Common import EnumResolution, to_uni_scale_id, to_uni_scale_type, to_db_column_name
 
 """
 This script is used to transform oasis item and coverage files into cannonical rf item and coverage files stored in a sqlite database
@@ -56,6 +56,10 @@ RF_DEFAULT_COVERAGE = dict(
 
 def get_connection_string(db_fp):
     return "Data Source=" + db_fp + ";Version=3;"
+
+
+def is_valid_model_data(risk_platform_data):
+    return os.path.isfile(os.path.join(risk_platform_data, DEFAULT_DB))
 
 
 def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data):

@@ -3,7 +3,7 @@
 """"This file contains constants translated from the MultiPeril Workbench and OED specification"""
 
 from enum import Enum
-from .RFException import ArgumentOutOfRangeException
+from RFException import ArgumentOutOfRangeException
 
 
 class OEDPeril(Enum):
