@@ -1,11 +1,11 @@
 # OasisLMF Complex Model Integration of HailAUS 7
 
 ## Run the complex model using the API & UI
-1) install git, docker and docker-compose
+1) install tree, git, docker and docker-compose
 
 For example on an Ubuntu/Debian based Linux system use:
 ```
-sudo apt update && sudo apt install git docker docker-compose
+sudo apt update && sudo apt install tree git docker docker-compose
 ```
 
 2) Clone this repository
@@ -13,7 +13,8 @@ sudo apt update && sudo apt install git docker docker-compose
 git clone https://github.com/risk-frontiers/OasisComplexModel.git
 cd OasisComplexModel
 ```
-3) Extract the model data archive and copy your license.txt into the model_data root folder
+3) Extract the model data archive and copy your license.txt into the model_data root folder. You can use 
+[WinSCP](https://winscp.net/eng/download.php) to copy files from windows to linux.
 4) Copy model_data inside OasisComplexModel. The folder structure should be as follows
 ```
 user@ubuntu:/var/oasis/OasisComplexModel$ tree
