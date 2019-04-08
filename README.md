@@ -5,28 +5,39 @@
 
 For example on an Ubuntu/Debian based Linux system use:
 ```
-sudo apt update && sudo apt install tree git docker docker-compose
+user@ubuntu:/home/user$ sudo apt update && sudo apt install tree git docker docker-compose
 ```
 
 2) Clone this repository
 ```
-git clone https://github.com/risk-frontiers/OasisComplexModel.git
-cd OasisComplexModel
+user@ubuntu:/home/user$ git clone https://github.com/risk-frontiers/OasisComplexModel.git
 ```
 3) Extract the model data archive and copy your license.txt into the model_data root folder. You can use 
 [WinSCP](https://winscp.net/eng/download.php) to copy files from windows to linux.
 4) Copy model_data inside OasisComplexModel. The folder structure should be as follows
 ```
-user@ubuntu:/var/oasis/OasisComplexModel$ tree
-.
-├── complex_model
-│   └── Risk.Platform.Core
-├── rf_install.sh
-├── model_data
-│   ├── license.txt
+user@ubuntu:/home/user$ tree -L 1 OasisComplexModel/
+OasisComplexModel/
+├── api_evaluation_notebook
+├── complex_model <---------------------- this contains Risk Frontiers' executables
+├── conf.ini
+├── db-data
+├── docker-compose.yml
+├── Dockerfile.custom_model_worker
+├── docker-shared-fs
+├── install.sh
+├── model_data    <---------------------- model_data contains license.txt and Risk Frontiers data
+├── model_resource.json
+├── OasisUI
+├── README.md
+├── requirements.txt
+├── rf_install.sh <---------------------- Risk Frontiers complex model installation script
+├── setup.py
+└── tests
 ```
 5) Run the deployment script
 ```
+cd OasisComplexModel
 ./rf_install.sh
 ```
 
