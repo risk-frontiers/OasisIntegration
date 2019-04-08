@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export OASIS_VER='1.0.0'
+export OASIS_VER='1.0.2'
 export UI_VER='1.0.0-rc1'
 
 # SETUP AND RUN COMPLEX MODEL EXAMPLE
