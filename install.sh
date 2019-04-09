@@ -1,8 +1,8 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export OASIS_VER='1.0.0'
-export UI_VER='1.0.0-rc1'
+export OASIS_VER='1.0.2'
+export UI_VER='1.0.2'
 
 # SETUP AND RUN COMPLEX MODEL EXAMPLE
 # Reset compose file to last commit && update tag number 
@@ -17,6 +17,7 @@ docker pull coreoasis/model_worker:$OASIS_VER
 docker build -f Dockerfile.custom_model_worker -t coreoasis/custom_model_worker:$OASIS_VER .
 
 # Start API
+docker-compose down
 docker-compose up -d
 
 # RUN OASIS UI
