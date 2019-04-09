@@ -6,13 +6,13 @@ import logging
 import subprocess
 
 import pandas as pd
+import complex_model.DefaultSettings as DS
 
 from backports.tempfile import TemporaryDirectory
 from oasislmf.utils.exceptions import OasisException
 from complex_model.OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string, is_valid_model_data
 from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin
 from complex_model.Common import PerilSet
-import DefaultSettings
 from datetime import datetime
 
 
@@ -130,13 +130,13 @@ def main():
 
     with TemporaryDirectory() as working_dir:
         log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
-        log_file = os.path.join(DefaultSettings.WORKER_LOG_DIRECTORY, log_filename)
+        log_file = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
         if _DEBUG:
             working_dir = "/hadoop/oasis/tmp"
             clean_directory(working_dir)
             log_file = os.path.join(working_dir, log_filename)
         # Write out RF canonical input files
-        risk_platform_data = os.path.join(DefaultSettings.MODEL_DATA_DIRECTORY)
+        risk_platform_data = os.path.join(DS.MODEL_DATA_DIRECTORY)
         if not is_valid_model_data(risk_platform_data):
             raise FileNotFoundError("Model data not set correctly: " + risk_platform_data)
         temp_db_fp = os.path.join(working_dir, DEFAULT_DB)
@@ -145,28 +145,28 @@ def main():
         num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_data)
 
         # generate oasis_param.json
-        complex_model_directory = DefaultSettings.COMPLEX_MODEL_DIRECTORY
+        complex_model_directory = DS.COMPLEX_MODEL_DIRECTORY
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
         oasis_param = {
-            "Peril": DefaultSettings.DEFAULT_RF_PERIL_ID,
+            "Peril": DS.DEFAULT_RF_PERIL_ID,
             "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
             "CoverageConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
             "ResultConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
             "MinEventId": int((event_batch - 1) * max_event_id / max_event_batch) + 1,
             "MaxEventId": int(event_batch * max_event_id / max_event_batch),
             "NumSamples": int(number_of_samples),
-            "CountryCode": DefaultSettings.COUNTRY_CODE,
+            "CountryCode": DS.COUNTRY_CODE,
             "ComplexModelDirectory": complex_model_directory,
             "LicenseFile": os.path.join(risk_platform_data, "license.txt"),
             "RiskPlatformData": risk_platform_data,
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
-            "PortfolioId": DefaultSettings.DEFAULT_PORTFOLIO_ID,
-            "MaxDegreeOfParallelism": DefaultSettings.MAX_DEGREE_OF_PARALLELISM,
+            "PortfolioId": DS.DEFAULT_PORTFOLIO_ID,
+            "MaxDegreeOfParallelism": DS.MAX_DEGREE_OF_PARALLELISM,
             "IndividualRiskMode": model_settings['individual_risk_mode']
-            if 'individual_risk_mode' in model_settings else DefaultSettings.DEFAULT_INDIVIDUAL_RISK_MODE,
+            if 'individual_risk_mode' in model_settings else DS.DEFAULT_INDIVIDUAL_RISK_MODE,
             "StaticMotor": model_settings['static_motor']
-            if 'static_motor' in model_settings else DefaultSettings.DEFAULT_STATIC_MOTOR,
+            if 'static_motor' in model_settings else DS.DEFAULT_STATIC_MOTOR,
         }
 
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")

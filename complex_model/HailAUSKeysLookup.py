@@ -11,6 +11,7 @@ from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
 from complex_model.PostcodeLookup import PostcodeLookup
 from complex_model.RFException import LocationLookupException
 from complex_model.Common import *
+from complex_model.DefaultSettings import COUNTRY_CODE
 
 
 class HailAUSKeysLookup(OasisBaseKeysLookup):
@@ -118,6 +119,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
         if 'locnumber' not in loc:
             raise LocationLookupException("Location Number is required but is missing in the OED file")
+        uni_exposure['loc_id'] = str(loc['locnumber'])
 
         # address
         try:
@@ -144,19 +146,32 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             else:
                 raise LocationLookupException("Location is not in Australia")
 
-        uni_exposure['loc_id'] = str(loc['locnumber'])
-
         # todo: fix when implementing quake nz
-        uni_exposure['country_code'] = str(loc["countrycode"]).lower() if 'countrycode' in loc else "au"
-        uni_exposure['state'] = str(loc['areacode']) if 'areacode' in loc else None
+        try:
+            if loc["countrycode"] != 0:
+                uni_exposure['country_code'] = str(loc["countrycode"]).lower()
+            else:
+                uni_exposure['country_code'] = COUNTRY_CODE
+        except (ValueError, TypeError):
+            uni_exposure['country_code'] = COUNTRY_CODE
+
+        try:
+            if loc["areacode"] != 0:
+                uni_exposure['state'] = str(loc['areacode'])
+            else:
+                uni_exposure['country_code'] = COUNTRY_CODE
+        except (ValueError, TypeError):
+            uni_exposure['state'] = None
 
         # uni_exposure['catchment_type'] # todo: when implementing flood
         # uni_exposure['catchment_id']
 
         # uni_exposure['fine_type']
         # uni_exposure['fine_id']
-
-        year_built = int(loc['yearbuilt']) if 'yearbuilt' in loc and loc['yearbuilt'] else 0
+        try:
+            year_built = int(loc['yearbuilt'])
+        except (ValueError, TypeError):
+            year_built = 0
         uni_exposure['props'] = {"YearBuilt": year_built}
 
         # uni_exposure['modelled']
