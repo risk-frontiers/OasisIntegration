@@ -129,11 +129,12 @@ def main():
         items_pd = pd.read_csv(p)
 
     with TemporaryDirectory() as working_dir:
-        log_file = DefaultSettings.WORKER_LOG_FILE
+        log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
+        log_file = os.path.join(DefaultSettings.WORKER_LOG_DIRECTORY, log_filename)
         if _DEBUG:
             working_dir = "/hadoop/oasis/tmp"
             clean_directory(working_dir)
-            log_file = os.path.join(inputs_fp, "riskfrontiers_{}.log".format(datetime.now().strftime("%Y%m%d%H%M%S")))
+            log_file = os.path.join(working_dir, log_filename)
         # Write out RF canonical input files
         risk_platform_data = os.path.join(DefaultSettings.MODEL_DATA_DIRECTORY)
         if not is_valid_model_data(risk_platform_data):
