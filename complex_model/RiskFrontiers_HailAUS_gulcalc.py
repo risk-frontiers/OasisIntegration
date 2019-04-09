@@ -129,9 +129,11 @@ def main():
         items_pd = pd.read_csv(p)
 
     with TemporaryDirectory() as working_dir:
+        log_file = DefaultSettings.WORKER_LOG_FILE
         if _DEBUG:
             working_dir = "/hadoop/oasis/tmp"
             clean_directory(working_dir)
+            log_file = os.path.join(inputs_fp, "riskfrontiers_{}.log".format(datetime.now().strftime("%Y%m%d%H%M%S")))
         # Write out RF canonical input files
         risk_platform_data = os.path.join(DefaultSettings.MODEL_DATA_DIRECTORY)
         if not is_valid_model_data(risk_platform_data):
@@ -169,10 +171,6 @@ def main():
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
         with open(oasis_param_fp, 'w') as param:
             param.writelines(json.dumps(oasis_param, indent=4, separators=(',', ': ')))
-
-        # define log file
-        # log_file = os.path.join(inputs_fp, "riskfrontiers_{}.log".format(datetime.now().strftime("%Y%m%d%H%M%S")))
-        log_file = DefaultSettings.WORKER_LOG_FILE
 
         # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
         cmd_str = "{} --oasis -c {} {} --log {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
