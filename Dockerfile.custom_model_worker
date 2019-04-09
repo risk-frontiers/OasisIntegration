@@ -12,9 +12,5 @@ ENV PYTHONPATH "${PYTHONPATH}:/var/oasis/complex_model"
 
 RUN pip install -e /var/oasis/
 
-#VOLUME ["/var/oasis/model_data"]
-
-#COPY ./oasislmf.json /var/oasis/custom/
-#COPY ./analysis_settings.json /var/oasis/custom/
-#COPY ./tests /var/oasis/custom/tests
+COPY ./tests /var/oasis/custom/tests
 #ENTRYPOINT /bin/bash
