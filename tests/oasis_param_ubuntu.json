@@ -16,7 +16,7 @@
 	"MaxEventId": 136000000,
 	"NumSamples": 1,
 	"CountryCode": "au",
-	"RiskPlatformData": "/hadoop/oasis/model_data/RISKFRONTIERS/HAILAUS",
+	"RiskPlatformData": "/hadoop/oasis/model_data",
 	"WorkingDirectory": "/hadoop/oasis/custom/tests",
 	"NumRows": 1,
 	"PortfolioId": 1

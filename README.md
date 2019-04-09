@@ -7,7 +7,7 @@ For example on an Ubuntu/Debian based Linux system use:
 ```
 user@ubuntu:/home/user$ sudo apt update && sudo apt install tree git docker docker-compose
 ```
-2) Add user to the `docker` group and switch user to obtain a shell where `user` is actively a member of that group
+2) Add `user` to the `docker` group and switch user to obtain a shell where `user` is actively a member of that group
 ```
 user@ubuntu:/home/user$ sudo usermod -aG docker user
 user@ubuntu:/home/user$ su - $USER
@@ -16,9 +16,12 @@ user@ubuntu:/home/user$ su - $USER
 ```
 user@ubuntu:/home/user$ git clone https://github.com/risk-frontiers/OasisComplexModel.git
 ```
-4) Extract the model data archive and copy your license.txt into the model_data root folder. You can use 
-[WinSCP](https://winscp.net/eng/download.php) to copy files from windows to linux.
-5) Copy model_data inside OasisComplexModel. The folder structure should be as follows
+4) **Optional**: change the user/password combination used to access the Oasis UI by changing
+`OASIS_ADMIN_USER` and `OASIS_ADMIN_PASS` in docker-compose.yml if required.
+5) Extract the model data archive and copy your license.txt into the model_data root folder. You can use 
+[WinSCP](https://winscp.net/eng/download.php) or [pscp](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) 
+to copy files from windows to linux.
+6) Copy model_data inside OasisComplexModel. The folder structure should be as follows
 ```
 user@ubuntu:/home/user$ tree -L 1 OasisComplexModel/
 OasisComplexModel/
@@ -30,7 +33,7 @@ OasisComplexModel/
 ├── Dockerfile.custom_model_worker
 ├── docker-shared-fs
 ├── install.sh
-├── model_data    <---------------------- model_data contains license.txt and Risk Frontiers data
+├── model_data    <---------------------- model_data contains license.txt and Risk Frontiers' data
 ├── model_resource.json
 ├── OasisUI
 ├── README.md
@@ -39,13 +42,13 @@ OasisComplexModel/
 ├── setup.py
 └── tests
 ```
-6) Run the deployment script
+7) Run the deployment script
 ```
 cd OasisComplexModel
 ./rf_install.sh
 ```
 
-7) Access via localhost, using the default `user: admin` `pass: password`
+8) Access via localhost, using the default `user: admin` `pass: password` (or the combination set the previous step)
 * [OasisUI Interface](http://localhost:8080/app/BFE_RShiny) - *localhost:8080/app/BFE_RShiny* 
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000*
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*

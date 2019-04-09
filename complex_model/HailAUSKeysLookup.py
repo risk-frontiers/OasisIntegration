@@ -8,9 +8,9 @@ from oasislmf.utils.metadata import (
     OASIS_KEYS_NM,
     OASIS_KEYS_STATUS)
 from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
-from .PostcodeLookup import PostcodeLookup
-from .RFException import LocationLookupException
-from .Common import *
+from complex_model.PostcodeLookup import PostcodeLookup
+from complex_model.RFException import LocationLookupException
+from complex_model.Common import *
 
 
 class HailAUSKeysLookup(OasisBaseKeysLookup):

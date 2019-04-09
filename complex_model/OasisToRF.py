@@ -2,7 +2,7 @@ import os
 import json
 import sqlite3
 from shutil import copyfile
-from .Common import EnumResolution
+from complex_model.Common import EnumResolution
 
 """
 This script is used to transform oasis item and coverage files into cannonical rf item and coverage files stored in a sqlite database

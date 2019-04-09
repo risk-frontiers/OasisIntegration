@@ -3,7 +3,7 @@
 import csv, json
 from shapely.geometry import shape, Point
 from os import path
-from .QuadTree import QuadTree
+from complex_model.QuadTree import QuadTree
 
 
 # from multiprocessing.pool import ThreadPool

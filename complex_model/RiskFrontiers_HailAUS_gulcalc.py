@@ -9,10 +9,12 @@ import pandas as pd
 
 from backports.tempfile import TemporaryDirectory
 from oasislmf.utils.exceptions import OasisException
-from .OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string, is_valid_model_data
-from .GulcalcToBin import gulcalc_sqlite_to_bin
-from .Common import PerilSet
+from complex_model.OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string, is_valid_model_data
+from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin
+from complex_model.Common import PerilSet
+import DefaultSettings
 from datetime import datetime
+
 
 _DEBUG = False
 
@@ -111,7 +113,10 @@ def main():
 
     # Access any model specific settings for the analysis
     model_version_id = analysis_settings_json['analysis_settings']['model_version_id'].lower()
-    model_settings = analysis_settings_json['model_settings']
+    if 'model_settings' in analysis_settings_json:
+        model_settings = analysis_settings_json['model_settings']
+    else:
+        model_settings = {}
 
     # Read the inputs, including the extended items
     with open(os.path.join(inputs_fp_csv, 'coverages.csv')) as p:
@@ -128,7 +133,7 @@ def main():
             working_dir = "/hadoop/oasis/tmp"
             clean_directory(working_dir)
         # Write out RF canonical input files
-        risk_platform_data = os.path.join("/var/oasis/model_data")  # todo: make this generic
+        risk_platform_data = os.path.join(DefaultSettings.MODEL_DATA_DIRECTORY)
         if not is_valid_model_data(risk_platform_data):
             raise FileNotFoundError("Model data not set correctly: " + risk_platform_data)
         temp_db_fp = os.path.join(working_dir, DEFAULT_DB)
@@ -137,26 +142,28 @@ def main():
         num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_data)
 
         # generate oasis_param.json
-        complex_model_directory = "/var/oasis/complex_model"  # todo: make this generic
+        complex_model_directory = DefaultSettings.COMPLEX_MODEL_DIRECTORY
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
         oasis_param = {
-            "Peril": 2,
+            "Peril": DefaultSettings.DEFAULT_RF_PERIL_ID,
             "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
             "CoverageConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
             "ResultConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
             "MinEventId": int((event_batch - 1) * max_event_id / max_event_batch) + 1,
             "MaxEventId": int(event_batch * max_event_id / max_event_batch),
             "NumSamples": int(number_of_samples),
-            "CountryCode": "au",  # todo: get this from somewhere
+            "CountryCode": DefaultSettings.COUNTRY_CODE,
             "ComplexModelDirectory": complex_model_directory,
             "LicenseFile": os.path.join(risk_platform_data, "license.txt"),
             "RiskPlatformData": risk_platform_data,
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
-            "PortfolioId": 1,
-            "MaxDegreeOfParallelism": 20,
-            "IndividualRiskMode": model_settings['irm'] if 'irm' in model_settings else False,
-            "StaticMotor": model_settings['static_motor'] if 'static_motor' in model_settings else False,
+            "PortfolioId": DefaultSettings.DEFAULT_PORTFOLIO_ID,
+            "MaxDegreeOfParallelism": DefaultSettings.MAX_DEGREE_OF_PARALLELISM,
+            "IndividualRiskMode": model_settings['individual_risk_mode']
+            if 'individual_risk_mode' in model_settings else DefaultSettings.DEFAULT_INDIVIDUAL_RISK_MODE,
+            "StaticMotor": model_settings['static_motor']
+            if 'static_motor' in model_settings else DefaultSettings.DEFAULT_STATIC_MOTOR,
         }
 
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
@@ -164,8 +171,8 @@ def main():
             param.writelines(json.dumps(oasis_param, indent=4, separators=(',', ': ')))
 
         # define log file
-        log_file = os.path.join(inputs_fp, "riskfrontiers_{}.log".format(
-            datetime.now().strftime("%Y%m%d%H%M%S")))
+        # log_file = os.path.join(inputs_fp, "riskfrontiers_{}.log".format(datetime.now().strftime("%Y%m%d%H%M%S")))
+        log_file = DefaultSettings.WORKER_LOG_FILE
 
         # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
         cmd_str = "{} --oasis -c {} {} --log {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
