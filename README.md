@@ -12,9 +12,9 @@ user@ubuntu:/home/user$ sudo apt update && sudo apt install tree git docker dock
 user@ubuntu:/home/user$ sudo usermod -aG docker user
 user@ubuntu:/home/user$ su - $USER
 ```
-3) Clone this repository
+3) Clone the latest release
 ```
-user@ubuntu:/home/user$ git clone https://github.com/risk-frontiers/OasisComplexModel.git
+user@ubuntu:/home/user$ git clone https://github.com/risk-frontiers/OasisComplexModel.git --branch=1.0.0-rc1
 ```
 4) **Optional**: change the user/password combination used to access the Oasis UI by changing
 `OASIS_ADMIN_USER` and `OASIS_ADMIN_PASS` in docker-compose.yml if required.
