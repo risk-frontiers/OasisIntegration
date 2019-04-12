@@ -53,15 +53,32 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :param uni_exposure:
         :return: validated uni_exposure
         """
-        if uni_exposure['address_id'] is None and uni_exposure['med_id'] is None and self._peril_id is not None \
-                and self._peril_id & OEDPeril.Hail.value > 0:
-            raise LocationLookupException("Cannot find postcode for location " + str(uni_exposure['loc_id']) +
-                                          ". Postcode is required for " + str(OEDPeril.Hail))
-
         if not ((uni_exposure['latitude'] and uni_exposure['longitude']) or uni_exposure['address_id'] or
                 uni_exposure['med_id'] or uni_exposure['zone_id'] or uni_exposure['lrg_id']):
             raise LocationLookupException("A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon "
                                           "or address coordinate")
+
+        return uni_exposure
+
+    def _add_geog_name(self, uni_exposure, geog_scheme, geog_name):
+        """This parses custom geo-location: GNAF ID, Cresta and ICAZone
+
+        :param uni_exposure:
+        :param geog_scheme: valid RF supported geography scheme
+        :param geog_name: valid RF supported region value
+        :return: the uni exposure object where the respective geo-location has been set
+        """
+        if geog_scheme == "XGNAF" and type(geog_name) == str:  # GNAF address
+            uni_exposure["address_id"] = geog_name
+            uni_exposure['address_type'] = EnumResolution.Address.value
+
+        if geog_scheme == "CRL" or geog_scheme == "CRH" and type(geog_name) == int and geog_name > 0:  # ica zone
+            uni_exposure["lrg_id"] = geog_name
+            uni_exposure['lrg_type'] = EnumResolution.IcaZone.value
+
+        if geog_scheme == "CRO" and type(geog_name) == int and geog_name > 0:  # cresta
+            uni_exposure["zone_id"] = geog_name
+            uni_exposure['zone_type'] = EnumResolution.Cresta.value
 
         return uni_exposure
 
@@ -77,6 +94,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :param coverage_type: is a either building [1], contents [3], other [3] (motor) or business interruption [4]
         :return: a uni_exposure object as per the Multi-Peril Workbench specification
         """
+
+        # OED: locperilscovered is required
         peril_covered = int(loc['locperilscovered']) \
             if 'locperilscovered' in loc and loc['locperilscovered'] is not None else 0  # todo: check that this is ok
         if peril_covered > 0 and not self._peril_id & peril_covered > 0:
@@ -87,79 +106,74 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
 
-        # ica zone
-        try:
-            uni_exposure['lrg_id'] = int(loc['locuserdef2']) if 'locuserdef2' in loc else None
-            uni_exposure['lrg_type'] = EnumResolution.IcaZone.value \
-                if uni_exposure['lrg_id'] and uni_exposure['lrg_id'] > 0 else None
-            if uni_exposure['lrg_id']:
-                uni_exposure['best_res'] = EnumResolution.IcaZone.value
-        except (ValueError, TypeError):
-            uni_exposure['lrg_id'] = None
+        # OED: locnumber is required
+        if 'locnumber' not in loc or loc['locnumber'] is None:
+            raise LocationLookupException("Location Number is required but is missing or null in the OED file")
+        uni_exposure['loc_id'] = str(loc['locnumber'])
 
-        # cresta
+        # OED: country code is also required but we'll default to AU is missing
         try:
-            uni_exposure['zone_id'] = int(loc['lowrescresta']) if 'lowrescresta' in loc else None
-            uni_exposure['zone_type'] = EnumResolution.Cresta.value \
-                if uni_exposure['zone_id'] and uni_exposure['zone_id'] > 0 else None
-            if uni_exposure['zone_id']:
-                uni_exposure['best_res'] = EnumResolution.Cresta.value
-        except (ValueError, TypeError):
-            uni_exposure['zone_id'] = None
+            uni_exposure['country_code'] = str(loc["countrycode"]).lower()
+        except (ValueError, KeyError):
+            uni_exposure['country_code'] = COUNTRY_CODE
+
+        # address, ICA zone and cresta
+        uni_exposure['address_id'] = None
+        uni_exposure['address_type'] = None
+        uni_exposure['lrg_id'] = None
+        uni_exposure['lrg_type'] = None
+        uni_exposure['zone_id'] = None
+        uni_exposure['zone_type'] = None
+        for i in range(1, 6):
+            geog_scheme_col = "geogscheme" + str(i)
+            geog_name_col = "geogname" + str(i)
+            try:
+                if geog_scheme_col in loc and geog_name_col in loc:
+                    uni_exposure = self._add_geog_name(uni_exposure, loc[geog_scheme_col], loc[geog_name_col])
+            except (ValueError, TypeError):
+                pass
 
         # postcode
         try:
             uni_exposure['med_id'] = int(loc['postalcode']) if 'postalcode' in loc else None
-            uni_exposure['med_type'] = EnumResolution.Postcode.value \
-                if uni_exposure['med_id'] and uni_exposure['med_id'] > 0 else None
-            if uni_exposure['med_id']:
-                uni_exposure['best_res'] = EnumResolution.Postcode.value
+            uni_exposure['med_type'] = EnumResolution.Postcode.value if uni_exposure['med_id'] > 0 else None
         except (ValueError, TypeError):
             uni_exposure['med_id'] = None
-
-        if 'locnumber' not in loc:
-            raise LocationLookupException("Location Number is required but is missing in the OED file")
-        uni_exposure['loc_id'] = str(loc['locnumber'])
-
-        # address
-        try:
-            uni_exposure['address_id'] = loc['locuserdef1'] if 'locuserdef1' in loc else None
-            uni_exposure['address_type'] = EnumResolution.Address.value if uni_exposure['address_id'] else None
-            if uni_exposure['address_id']:
-                uni_exposure['best_res'] = EnumResolution.Address.value
-        except (ValueError, TypeError):
-            uni_exposure['address_id'] = None
+            uni_exposure['med_type'] = None
 
         # lat/lon
         uni_exposure['latitude'] = None
         uni_exposure['longitude'] = None
-        if loc['longitude'] and loc['latitude']:
+        if loc['longitude'] is not None and loc['latitude'] is not None \
+                and not loc['longitude'] == 0 and not loc['latitude'] == 0:
             if AU_BOUNDING_BOX['MIN'][0] <= loc["longitude"] <= AU_BOUNDING_BOX['MAX'][0] \
                     and AU_BOUNDING_BOX['MIN'][1] <= loc["latitude"] <= AU_BOUNDING_BOX['MAX'][1]:
                 uni_exposure['latitude'] = loc['latitude']
                 uni_exposure['longitude'] = loc['longitude']
-                uni_exposure['best_res'] = EnumResolution.LatLong.value
                 if uni_exposure['med_id'] is None and self._postcode_lookup:
                     uni_exposure['med_id'] = self._postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
                 if uni_exposure['lrg_id'] is None:
-                    pass  # todo: cresta lookup for lat/lon not required for hail at the moment
+                    pass  # not required at lat/lon level
             else:
                 raise LocationLookupException("Location is not in Australia")
 
-        # todo: fix when implementing quake nz
-        try:
-            if loc["countrycode"] != 0:
-                uni_exposure['country_code'] = str(loc["countrycode"]).lower()
-            else:
-                uni_exposure['country_code'] = COUNTRY_CODE
-        except (ValueError, TypeError):
-            uni_exposure['country_code'] = COUNTRY_CODE
+        # setting best res
+        if uni_exposure['lrg_id'] is not None and uni_exposure['lrg_id'] > 0:
+            uni_exposure['best_res'] = EnumResolution.IcaZone.value
+        if uni_exposure['zone_id'] is not None and uni_exposure['zone_id'] > 0:
+            uni_exposure['best_res'] = EnumResolution.Cresta.value
+        if uni_exposure['med_id'] is not None and uni_exposure['med_id'] > 0:
+            uni_exposure['best_res'] = EnumResolution.Postcode.value
+        if uni_exposure['address_id'] is not None \
+                and isinstance(uni_exposure['address_id'], str) \
+                and len(uni_exposure['address_id']) == 14:  # todo: check for ok GNAF?
+            uni_exposure['best_res'] = EnumResolution.Address.value
+        if uni_exposure['latitude'] is not None and uni_exposure['longitude'] is not None:
+            uni_exposure['best_res'] = EnumResolution.LatLong.value
 
         try:
             if loc["areacode"] != 0:
                 uni_exposure['state'] = str(loc['areacode'])
-            else:
-                uni_exposure['country_code'] = COUNTRY_CODE
         except (ValueError, TypeError):
             uni_exposure['state'] = None
 

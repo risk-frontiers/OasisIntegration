@@ -45,6 +45,7 @@ OasisComplexModel/
 7) Run the deployment script
 ```
 cd OasisComplexModel
+chmod +x rf_install.sh
 ./rf_install.sh
 ```
 

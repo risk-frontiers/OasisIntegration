@@ -5,3 +5,6 @@ db-data/
 data/
 docker-shared-fs/
 model_data/
+tmp/
+OasisUI/
+api_evaluation_notebook/

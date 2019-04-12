@@ -103,7 +103,7 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
 
         model_data = json.loads(item_row['model_data'])
         for key in rf_item.keys():
-            if key in model_data and model_data[key]:
+            if key in model_data and model_data[key] is not None:
                 if key.lower() == "props":
                     rf_item[key] = json.dumps(model_data[key])
                 else:

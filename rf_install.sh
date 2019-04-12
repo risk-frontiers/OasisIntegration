@@ -1,4 +1,7 @@
 #!/bin/bash
+docker rm -f $(docker ps -qa)
+docker system prune -f
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export OASIS_VER='1.0.2'
@@ -31,7 +34,7 @@ fi
 
 # Reset UI docker Tag
 cd ${SCRIPT_DIR}/${GIT_UI}
-git checkout -- docker-compose.yml
+#git checkout -- docker-compose.yml
 sed -i 's|:latest|:${UI_VER}|g' docker-compose.yml
 cd ${SCRIPT_DIR}
 
@@ -40,3 +43,5 @@ cp ${SCRIPT_DIR}/model_resource.json ${SCRIPT_DIR}/${GIT_UI}/model_resource.json
 docker network create shiny-net
 docker pull coreoasis/oasisui_app:${UI_VER}
 docker-compose -f ${SCRIPT_DIR}/${GIT_UI}/docker-compose.yml up -d
+
+docker exec -it oasis_worker_1 /bin/bash
