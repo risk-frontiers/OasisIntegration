@@ -1,20 +1,20 @@
 # OasisLMF Complex Model Integration of HailAUS 7
 
 ## Run the complex model using the API & UI
-1) install tree, git, docker and docker-compose
+1) install git, docker and docker-compose
 
 For example on an Ubuntu/Debian based Linux system use:
 ```
-user@ubuntu:/home/user$ sudo apt update && sudo apt install tree git docker docker-compose
+sudo apt update && sudo apt install git docker docker-compose
 ```
 2) Add `user` to the `docker` group and switch user to obtain a shell where `user` is actively a member of that group
 ```
-user@ubuntu:/home/user$ sudo usermod -aG docker user
-user@ubuntu:/home/user$ su - $USER
+sudo usermod -aG docker user
+su - $USER
 ```
 3) Clone the latest release
 ```
-user@ubuntu:/home/user$ git clone https://github.com/risk-frontiers/OasisComplexModel.git --branch=1.0.0-rc1
+git clone https://github.com/risk-frontiers/OasisComplexModel.git --branch=1.0.0-rc1
 ```
 4) **Optional**: change the user/password combination used to access the Oasis UI by changing
 `OASIS_ADMIN_USER` and `OASIS_ADMIN_PASS` in docker-compose.yml if required.
@@ -23,7 +23,6 @@ user@ubuntu:/home/user$ git clone https://github.com/risk-frontiers/OasisComplex
 to copy files from windows to linux.
 6) Copy model_data inside OasisComplexModel. The folder structure should be as follows
 ```
-user@ubuntu:/home/user$ tree -L 1 OasisComplexModel/
 OasisComplexModel/
 ├── api_evaluation_notebook
 ├── complex_model <---------------------- this contains Risk Frontiers' executables
