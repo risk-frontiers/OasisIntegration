@@ -1,6 +1,16 @@
 {
   "analysis_settings": {
-    "analysis_tag": 1,
+    "model_settings": {
+      "event_set": "P",
+      "leakage_factor": 0.5,
+      "peril_wind": true,
+      "demand_surge": false,
+      "peril_quake": false,
+      "peril_flood": false,
+      "peril_surge": false,
+      "event_occurrence_id": 1
+    },
+    "analysis_tag": 2,
     "exposure_location": "L:",
     "gul_threshold": 0,
     "model_version_id": "HailAUS",
@@ -12,7 +22,9 @@
     "gul_summaries": [
       {
         "summarycalc": true,
+        "eltcalc": true,
         "aalcalc": true,
+        "pltcalc": true,
         "id": 1,
         "oed_fields": "prog",
         "lec_output": true,
@@ -27,16 +39,5 @@
     ],
     "il_output": false,
     "ri_output": false
-  },
-  "model_settings": {
-    "event_set": "P",
-    "leakage_factor": 0.5,
-    "peril_wind": true,
-    "demand_surge": true,
-    "peril_quake": true,
-    "peril_flood": true,
-    "peril_surge": false,
-    "event_occurrence_file_id": 1
   }
 }
-

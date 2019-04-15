@@ -113,8 +113,8 @@ def main():
 
     # Access any model specific settings for the analysis
     model_version_id = analysis_settings_json['analysis_settings']['model_version_id'].lower()
-    if 'model_settings' in analysis_settings_json:
-        model_settings = analysis_settings_json['model_settings']
+    if 'model_settings' in analysis_settings_json['analysis_settings']:
+        model_settings = analysis_settings_json['analysis_settings']['model_settings']
     else:
         model_settings = {}
 

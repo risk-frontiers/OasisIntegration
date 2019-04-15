@@ -8,3 +8,4 @@ model_data/
 tmp/
 OasisUI/
 api_evaluation_notebook/
+tests/
