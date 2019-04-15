@@ -7,8 +7,7 @@
                "default": "P",
 
                       "values":{
-                        "P": "Proabilistic",
-                        "H": "Historic"
+                        "P": "Proabilistic"
                     }
             }
          },
@@ -19,30 +18,10 @@
                     "type":"dictionary",
                     "default": "1",
                     "values":{
-                       "1":"Long Term",
-                       "2":"Near Term WSST",
-                       "3":"Historic"
+                       "1":"Long Term"
                     }
                 }
 
-            },
-            {
-                "peril_wind":{
-                "name": "Wind Peril",
-            "desc": "Run model with Wind Peril",
-                    "type":"boolean",
-                    "default": true
-
-                 }
-            },
-            {
-                 "peril_surge":{
-                    "name": "Surge Peril",
-            "desc": "Run model with Surge Peril",
-                    "type":"boolean",
-                    "default": false
-
-                  }
             },
             {
                  "peril_custom":{
@@ -54,11 +33,20 @@
                   }
             },
             {
+                 "static_motor":{
+                    "name": "Static Motor",
+            "desc": "Execute Risk Frontiers engine with Static Motor enabled",
+                    "type":"boolean",
+                    "default": false
+
+                  }
+            },
+            {
                "leakage_factor": {
-                   "name": "Leakage Factor",
-           "desc": "Tooltip for Leakage option",
+                   "name": "Input Scaling",
+           "desc": "TIV input scaling",
                    "type": "float",
-                   "default": 0.5,
+                   "default": 1.0,
                    "min": 0.0,
                    "max":1.0
                 }
