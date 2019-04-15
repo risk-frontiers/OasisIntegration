@@ -14,7 +14,7 @@ su - $USER
 ```
 3) Clone the latest release
 ```
-git clone https://github.com/risk-frontiers/OasisComplexModel.git --branch=1.0.0-rc1
+git clone https://github.com/risk-frontiers/OasisComplexModel.git --branch=1.0.0-rc2
 ```
 4) **Optional**: change the user/password combination used to access the Oasis UI by changing
 `OASIS_ADMIN_USER` and `OASIS_ADMIN_PASS` in docker-compose.yml if required.
