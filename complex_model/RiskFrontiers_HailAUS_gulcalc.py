@@ -14,6 +14,7 @@ from complex_model.OasisToRF import create_rf_input, DEFAULT_DB, get_connection_
 from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin
 from complex_model.Common import PerilSet
 from datetime import datetime
+import multiprocessing
 
 
 _DEBUG = False
@@ -147,6 +148,8 @@ def main():
         # generate oasis_param.json
         complex_model_directory = DS.COMPLEX_MODEL_DIRECTORY
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
+        num_cores = multiprocessing.cpu_count()
+        max_parallelism = max(1, min(num_cores, num_cores/max_event_batch))
         oasis_param = {
             "Peril": DS.DEFAULT_RF_PERIL_ID,
             "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
@@ -162,7 +165,7 @@ def main():
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
             "PortfolioId": DS.DEFAULT_PORTFOLIO_ID,
-            "MaxDegreeOfParallelism": DS.MAX_DEGREE_OF_PARALLELISM,
+            "MaxDegreeOfParallelism": max_parallelism,
             "IndividualRiskMode": model_settings['individual_risk_mode']
             if 'individual_risk_mode' in model_settings else DS.DEFAULT_INDIVIDUAL_RISK_MODE,
             "StaticMotor": model_settings['static_motor']
