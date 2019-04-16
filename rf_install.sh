@@ -24,21 +24,28 @@ if [[ ! -f "events.bin" ]]
     exit 1
 fi
 
-echo "Creating events_p.bin and events_h.bin"
-cp events.bin events_p.bin
-cp events.bin events_h.bin
+if [[ ! -f "events_p.bin" ]]
+    then echo "Creating events_p.bin"
+    cp events.bin events_p.bin
+fi
+if [[ ! -f "events_h.bin" ]]
+    then echo "Creating events_h.bin"
+    cp events.bin events_h.bin
+fi
 
 if [[ ! -f "occurrence.bin" ]]
     then echo "This is not a valid model data directory: occurrence.bin missing"
     exit 1
 fi
 
-echo "Creating occurrence_1.bin"
-cp occurrence.bin occurrence_1.bin
-cd ${SCRIPT_DIR}
+if [[ ! -f "occurrence_1.bin" ]]
+    then echo "Creating occurrence_1.bin"
+    cp occurrence.bin occurrence_1.bin
+fi
 
 # SETUP and RUN complex
 echo "Setting up docker images and containers for Oasis worker and API"
+cd ${SCRIPT_DIR}
 #git checkout -- docker-compose.yml
 sed -i 's|:latest|:${OASIS_VER}|g' docker-compose.yml
 
