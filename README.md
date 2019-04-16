@@ -24,13 +24,10 @@ to copy files from windows to linux.
 6) Copy model_data inside OasisComplexModel. The folder structure should be as follows
 ```
 OasisComplexModel/
-├── api_evaluation_notebook
 ├── complex_model <---------------------- this contains Risk Frontiers' executables
 ├── conf.ini
-├── db-data
 ├── docker-compose.yml
 ├── Dockerfile.custom_model_worker
-├── docker-shared-fs
 ├── install.sh
 ├── model_data    <---------------------- model_data contains license.txt and Risk Frontiers' data
 ├── model_resource.json
