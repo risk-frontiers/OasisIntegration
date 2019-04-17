@@ -40,7 +40,7 @@ OasisComplexModel/
 ```
 7) Run the deployment script
 ```
-cd OasisComplexModel
+cd OasisIntegration
 chmod +x rf_install.sh
 ./rf_install.sh
 ```
@@ -50,6 +50,14 @@ chmod +x rf_install.sh
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000*
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*
 
+9) Sometimes, when an exception is encountered in the Oasis UI then the containers have to be recreated for the deployment 
+to work as expected again. We have provided a script that deletes are containers and persistent data for the deployment. 
+Note that running this script on a shared deployment (i.e. an Oasis deployment including multiple models from the same 
+or different vendors) is <span style="color:red">**VERY DANGEROUS**</span>. Please use this for technical testing of 
+Risk Frontiers integration only. Once the Oasis UI is stable enough, this script will be removed.
+```
+./reset.sh
+``` 
 
 ### Notes: 
 * A more detailed documentation can be found in [oasis_integration.pdf](https://github.com/risk-frontiers/OasisComplexModel/blob/master/oasis_integration.pdf).
