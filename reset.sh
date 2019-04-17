@@ -26,7 +26,7 @@ then
     docker network rm oasis_default
     docker network rm shiny-net
 
-    read -r -p "Do you want to to delete all data (setting, portfolio, calculated losses, ...)? [y/N]" response
+    read -r -p "Do you want to to delete all data (setting, portfolio, calculated losses, logs, tmp ...)? [y/N]" response
     response=${response,,}    # to lower
     if [[ "$response" =~ ^(yes|y)$ ]]
      then
@@ -36,6 +36,12 @@ then
         fi
         if [[ -d docker-shared-fs ]]
             then sudo rm -r docker-shared-fs
+        fi
+        if [[ -d log ]]
+            then sudo rm -r log
+        fi
+        if [[ -d tmp ]]
+            then sudo rm -r tmp
         fi
     fi
 fi
