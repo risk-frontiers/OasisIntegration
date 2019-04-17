@@ -12,16 +12,18 @@ sudo apt update && sudo apt install git docker docker-compose -y
 sudo usermod -aG docker $USER
 sudo su - $USER
 ```
+> On Azure, you may want to perform the following in `/mnt` as we require at least 35GB of storage.
 3) Clone the latest release
 ```
 git clone https://github.com/risk-frontiers/OasisIntegration.git
 ```
-4) **Optional**: change the user/password combination used to access the Oasis UI by changing
-`OASIS_ADMIN_USER` and `OASIS_ADMIN_PASS` in docker-compose.yml if required.
+4) Set the  `KTOOLS_BATCH_COUNT` in `conf.ini` to a value between *X/16* and *X/10* and should be smaller or equal to 
+the total number of cores, where *X* is the amount of available memory. For instance, it should be *4* on a hardware 
+with 48GB of memory and 6 cores.
 5) Extract the model data archive and copy your license.txt into the model_data root folder. You can use 
 [WinSCP](https://winscp.net/eng/download.php) or [pscp](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) 
 to copy files from windows to linux.
-6) Copy model_data inside OasisComplexModel. The folder structure should be as follows
+6) Copy model_data inside the OasisIntegration folder. The folder structure should be as follows
 ```
 OasisComplexModel/
 ├── complex_model <---------------------- this contains Risk Frontiers' executables
@@ -38,8 +40,8 @@ OasisComplexModel/
 ├── setup.py
 └── tests
 ```
-7) Set the  `KTOOLS_BATCH_COUNT` in `conf.ini` to a value between *X/16* and *X/10*, where *X* is the amount of 
-available memory. For instance, it should be *4* on a hardware with 48GB of memory.
+7) **Optional**: change the user/password combination used to access the Oasis UI by changing
+`OASIS_ADMIN_USER` and `OASIS_ADMIN_PASS` in docker-compose.yml if required.
 8) Run the deployment script
 ```
 cd OasisIntegration
@@ -65,7 +67,6 @@ chmod +x reset.sh
 ```
 chmod +x reset.sh
 ./reset.sh  # type no when asked to delete persistent data
-git pull  # delete reset.sh or rf_install.sh if git complains about some local changes not commited
 ./rf_install.sh
 ``` 
 ### Notes: 
