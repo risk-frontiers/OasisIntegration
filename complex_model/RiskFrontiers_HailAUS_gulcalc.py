@@ -129,7 +129,7 @@ def main():
 
     with open(complex_items_fp) as p:
         items_pd = pd.read_csv(p)
-    with TemporaryDirectory(dir=DS.TEMP_DIRECTORY_ROOT) as working_dir:
+    with TemporaryDirectory() as working_dir:
         log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
         log_file = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
         # if _DEBUG:
