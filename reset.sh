@@ -2,8 +2,10 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export UI_VER='1.0.2'
 
-read -r -p "Are you sure to delete all data (setting, portfolio, calculated losses, ...) for this deployment?
-Note that this is very dangerous especially if you have another instance of oasislmf on this same infrastructure [y/N] " response
+read -r -p "Are you sure you want to reset this deployment?
+Note that running this script on a shared deployment (i.e. an Oasis deployment including multiple
+models from the same or different vendors) is **VERY DANGEROUS**. Please use this for technical testing of
+Risk Frontiers integration only. Once the Oasis UI is stable enough, this script will be removed. [y/N] " response
 response=${response,,}    # to lower
 if [[ "$response" =~ ^(yes|y)$ ]]
 then
@@ -24,12 +26,16 @@ then
     docker network rm oasis_default
     docker network rm shiny-net
 
-    echo "Deleting persistent data"
-    cd ${SCRIPT_DIR}
-    if [[ -d db-data ]]
-        then sudo rm -r db-data
-    fi
-    if [[ -d docker-shared-fs ]]
-        then sudo rm -r docker-shared-fs
+    read -r -p "Do you want to to delete all data (setting, portfolio, calculated losses, ...)? [y/N]" response
+    response=${response,,}    # to lower
+    if [[ "$response" =~ ^(yes|y)$ ]]
+     then
+        cd ${SCRIPT_DIR}
+        if [[ -d db-data ]]
+            then sudo rm -r db-data
+        fi
+        if [[ -d docker-shared-fs ]]
+            then sudo rm -r docker-shared-fs
+        fi
     fi
 fi
