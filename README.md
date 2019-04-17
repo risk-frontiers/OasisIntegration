@@ -63,8 +63,9 @@ chmod +x reset.sh
 ``` 
 11) To upgrade during technical evaluation, do
 ```
-./reset.sh # type no when asked to delete persistent data
-git pull
+chmod +x reset.sh
+./reset.sh  # type no when asked to delete persistent data
+git pull  # delete reset.sh or rf_install.sh if git complains about some local changes not commited
 ./rf_install.sh
 ``` 
 ### Notes: 

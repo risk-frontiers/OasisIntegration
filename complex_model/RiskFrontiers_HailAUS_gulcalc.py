@@ -149,7 +149,7 @@ def main():
         complex_model_directory = DS.COMPLEX_MODEL_DIRECTORY
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
         num_cores = multiprocessing.cpu_count()
-        max_parallelism = max(1, min(num_cores, num_cores/max_event_batch))
+        max_parallelism = int(max(1, min(num_cores, num_cores/max_event_batch)))
         oasis_param = {
             "Peril": DS.DEFAULT_RF_PERIL_ID,
             "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
