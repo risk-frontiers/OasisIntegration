@@ -177,7 +177,7 @@ def fill_resolution_from_address_id(con, cur):
                 3 lrg_type,
                 CASE WHEN a.lrg_id IS NULL THEN b.ica_zone ELSE a.lrg_id END lrg_id,
                 1 med_type,
-                CASE WHEN a.med_id IS NULL THEN b.postcode ELSE a.med_id END med_id,
+                CASE WHEN a.med_id IS NULL OR a.med_id = 0 THEN b.postcode ELSE a.med_id END med_id,
                 a.fine_type,
                 a.fine_id,
                 a.lob_id,

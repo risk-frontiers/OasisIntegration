@@ -33,6 +33,7 @@ with 48GB of memory and 6 cores. You can run `free -h` to print out the total me
 nano conf.ini   
 ```
 Update the value for `KTOOLS_BATCH_COUNT` then press `CTRL+X`, then `Y`, then `ENTER` to save.
+
 5) Transfer model_data.7z into the *OasisIntegration* folder. You can use [WinSCP](https://winscp.net/eng/download.php) or [pscp](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) to transfer files from windows to linux. Then extract and remove the compressed archive:
 ```
 7z x model_data.7z
