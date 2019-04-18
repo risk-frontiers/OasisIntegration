@@ -84,7 +84,7 @@ services:
      - OASIS_CELERY_DB_PORT=3306
     volumes:
      - ./tmp:/tmp:rw
-     - ./tests:/var/oasis/tests:rw
+     - ./log:/var/log/oasis:rw
      - ./model_data:/var/oasis/model_data/:rw
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
   server-db:

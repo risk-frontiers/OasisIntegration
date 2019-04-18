@@ -5,14 +5,16 @@
 
 For example on an Ubuntu/Debian based Linux system use:
 ```
-sudo apt update && sudo apt install git docker docker-compose -y
+sudo apt update && sudo apt install p7zip-full p7zip-rar git docker docker-compose -y
 ```
 2) Add `user` to the `docker` group and switch user to obtain a shell where `user` is actively a member of that group
 ```
 sudo usermod -aG docker $USER
 sudo su - $USER
 ```
-> On Azure, you may want to perform the following in `/mnt` as we require at least 35GB of storage.
+> On Azure, you may want to perform the following in `/mnt` as we require at least 35GB of persistent storage for the 
+hazard and more for temporary storage (see the *oasis_integration.pdf* for more information about the hardware requirement 
+and an example Azure specification)
 3) Clone the latest release
 ```
 git clone https://github.com/risk-frontiers/OasisIntegration.git
@@ -20,12 +22,17 @@ git clone https://github.com/risk-frontiers/OasisIntegration.git
 4) Set the  `KTOOLS_BATCH_COUNT` in `conf.ini` to a value between *X/16* and *X/10* and should be smaller or equal to 
 the total number of cores, where *X* is the amount of available memory. For instance, it should be *4* on a hardware 
 with 48GB of memory and 6 cores.
-5) Extract the model data archive and copy your license.txt into the model_data root folder. You can use 
+5) Transfer model_data.7z in the same directory as the clone repository above. You can use 
 [WinSCP](https://winscp.net/eng/download.php) or [pscp](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) 
 to copy files from windows to linux.
-6) Copy model_data inside the OasisIntegration folder. The folder structure should be as follows
 ```
-OasisComplexModel/
+7z e model_data.7z
+rm -r model_data.7z
+mv model_data OasisIntegration/
+```
+6) Transfer the *license.txt* into *OasisIntegration/model_data* folder. The folder structure should be as follows
+```
+OasisIntegration/
 ├── complex_model <---------------------- this contains Risk Frontiers' executables
 ├── conf.ini
 ├── docker-compose.yml
@@ -70,6 +77,5 @@ chmod +x reset.sh
 ./rf_install.sh
 ``` 
 ### Notes: 
-* A more detailed documentation can be found in [oasis_integration.pdf](https://github.com/risk-frontiers/OasisComplexModel/blob/master/oasis_integration.pdf).
 * A valid Risk Frontiers license is required to run the integrated model. Please contact 
 [Risk Frontiers](mailto:info@riskfrontiers.com) for more information. 
