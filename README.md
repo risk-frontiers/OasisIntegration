@@ -64,6 +64,7 @@ OasisIntegration/
 chmod +x rf_install.sh
 ./rf_install.sh
 ```
+> If you encounter **ERROR: An HTTP request took too long to complete. Retry with --verbose to obtain debug information.** then please re-run *rf_instal.sh*
 9) Access via the accessible IP (Public IP for Azure), using the default `user: admin` `pass: password` (or the combination set the previous step)
 * [OasisUI Interface](http://localhost:8080/app/BFE_RShiny) - *localhost:8080/app/BFE_RShiny* 
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000* 
