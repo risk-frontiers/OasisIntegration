@@ -17,7 +17,7 @@ from datetime import datetime
 import multiprocessing
 
 
-_DEBUG = True
+_DEBUG = False
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
