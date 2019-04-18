@@ -150,7 +150,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                     and AU_BOUNDING_BOX['MIN'][1] <= loc["latitude"] <= AU_BOUNDING_BOX['MAX'][1]:
                 uni_exposure['latitude'] = loc['latitude']
                 uni_exposure['longitude'] = loc['longitude']
-                if uni_exposure['med_id'] is None and self._postcode_lookup:
+                if uni_exposure['med_id'] is None or uni_exposure['med_id'] == 0 and self._postcode_lookup:
                     uni_exposure['med_id'] = self._postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
                 if uni_exposure['lrg_id'] is None:
                     pass  # not required at lat/lon level
@@ -174,7 +174,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         try:
             if loc["areacode"] != 0:
                 uni_exposure['state'] = str(loc['areacode'])
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, KeyError):
             uni_exposure['state'] = None
 
         # uni_exposure['catchment_type'] # todo: when implementing flood
@@ -184,7 +184,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # uni_exposure['fine_id']
         try:
             year_built = int(loc['yearbuilt'])
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, KeyError):
             year_built = 0
         uni_exposure['props'] = {"YearBuilt": year_built}
 
@@ -220,6 +220,6 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
 
 if __name__ == "__main__":
-    cl = HailAUSKeysLookup(keys_data_directory="/hadoop/oasis/keys_data", model_name="hailAus")
-    test_loc = {'locnumber': 1, 'latitude': -33.8688, 'longitude': 151.2093}
+    cl = HailAUSKeysLookup(keys_data_directory="/hadoop/oasis/model_data/keys_data", model_name="hailAus")
+    test_loc = {'locnumber': 1, 'latitude': -33.8688, 'longitude': 151.2093 }
     print(cl.process_location(test_loc, 1))

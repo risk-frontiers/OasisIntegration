@@ -15,7 +15,6 @@ from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin
 from complex_model.Common import PerilSet
 from datetime import datetime
 import multiprocessing
-import configparser
 
 
 _DEBUG = False
@@ -132,10 +131,10 @@ def main():
     with TemporaryDirectory() as working_dir:
         log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
         log_file = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
-        # if _DEBUG:
-        #    working_dir = "/hadoop/oasis/tmp"
-        #    clean_directory(working_dir)
-        #    log_file = os.path.join(working_dir, log_filename)
+        if _DEBUG:
+            working_dir = "/hadoop/oasis/tmp"
+            clean_directory(working_dir)
+            log_file = os.path.join(working_dir, log_filename)
         # Write out RF canonical input files
         risk_platform_data = os.path.join(DS.MODEL_DATA_DIRECTORY)
         if not is_valid_model_data(risk_platform_data):
