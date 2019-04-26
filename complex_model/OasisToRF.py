@@ -109,9 +109,9 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
                 else:
                     rf_item[key] = model_data[key]
 
-        if not rf_item['loc_id']:
+        # if not rf_item['loc_id']:
             # rf_item['loc_id'] = "rf_loc_" + str(model_data['loc_id'])
-            rf_item['loc_id'] = item_row['item_id']
+        rf_item['loc_id'] = str(item_row['item_id'])
 
         # building coverage row
         rf_coverage = RF_DEFAULT_COVERAGE.copy()

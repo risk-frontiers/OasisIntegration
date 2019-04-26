@@ -70,7 +70,7 @@ chmod +x rf_install.sh
 * [OasisUI Interface](http://localhost:8080/app/BFE_RShiny) - *localhost:8080/app/BFE_RShiny* 
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000* 
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*
-> Azure: you will also need to add inbound firewall rules for port 8000 is you need direct acces to the OaisAPI
+> Azure: you will also need to add an inbound firewall rule for port 8000 if you need direct access to the OaisAPI
 
 10) Sometimes, when an exception is encountered in the Oasis UI then the containers have to be recreated for the deployed oasis framework 
 to work as expected again. We have provided a script that deletes the containers and data for the deployment. 
