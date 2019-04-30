@@ -4,5 +4,5 @@
     "keys_data_path": "/var/oasis/model_data/keys_data",
     "model_version_file_path": "/var/oasis/complex_model/ModelVersion.csv",
     "model_data_path": "/var/oasis/model_data",
-    "source_exposure_file_path": "/var/oasis/tests/data/RiskFronteirs_OED_LOC_sample10.csv.csv"
+    "source_exposure_file_path": "/var/oasis/tests/data/RiskFronteirs_OED_LOC_sample10.csv"
 }

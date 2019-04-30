@@ -22,9 +22,12 @@ then
     docker rm -f $(docker ps -a -q --filter ancestor="coreoasis/oasisui_app:${UI_VER}")
     docker rm -f $(docker ps -a -q --filter ancestor="coreoasis/oasisui_proxy:${UI_VER}")
 
-    echo "Deleting networks"
-    docker network rm oasis_default
-    docker network rm shiny-net
+    #echo "Deleting networks"
+    #docker network rm oasis_default
+    #docker network rm shiny-net
+
+    echo "Pruning obsolete images and networks"
+    docker system prune
 
     read -r -p "Do you want to to delete all data (setting, portfolio, calculated losses, logs, tmp ...)? [y/N]" response
     response=${response,,}    # to lower
