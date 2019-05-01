@@ -15,7 +15,7 @@ fi
 
 cd ${MODEL_DATA}
 if [[ ! -f "license.txt" ]]
-    then echo "License file missing. Please copy your Risk Frontiers license file here."
+    then echo "License file missing. Please copy your Risk Frontiers license file in the model_data folder."
     exit 1
 fi
 

@@ -83,8 +83,8 @@ or different vendors) is **VERY DANGEROUS**. Please use this for technical testi
 11) To update the framework, do
 ```
 chmod +x reset.sh
-./reset.sh  # type no when asked to delete data
 git pull
+./reset.sh  # type y to start reset, then type y when asked about prunning, then type no when asked to delete data
 ./rf_install.sh
 ``` 
 ### Notes: 
