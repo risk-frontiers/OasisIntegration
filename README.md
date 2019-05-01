@@ -66,11 +66,11 @@ chmod +x rf_install.sh
 ./rf_install.sh
 ```
 > If you encounter **ERROR: An HTTP request took too long to complete. Retry with --verbose to obtain debug information.** then please re-run *rf_instal.sh*
-9) Access via the accessible IP (Public IP for Azure), using the default `user: admin` `pass: password` (or the combination set the previous step)
+9) Access via the accessible IP (Public IP for Azure), using the default `user: admin` `pass: password` (or the combination set in the previous step)
 * [OasisUI Interface](http://localhost:8080/app/BFE_RShiny) - *localhost:8080/app/BFE_RShiny* 
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000* 
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*
-> Azure: you will also need to add an inbound firewall rule for port 8000 if you need direct access to the OaisAPI
+> Azure: you will also need to add an inbound firewall rule for port 8000 if you need direct access to the Oasis API
 
 10) Sometimes, when an exception is encountered in the Oasis UI then the containers have to be recreated for the deployed oasis framework 
 to work as expected again. We have provided a script that deletes the containers and data for the deployment. 
@@ -82,8 +82,8 @@ chmod +x reset.sh
 or different vendors) is **VERY DANGEROUS**. Please use this for technical testing of Risk Frontiers integration only. Once the Oasis UI is stable enough, this script will be removed.
 11) To update the framework, do
 ```
-chmod +x reset.sh
 git pull
+chmod +x reset.sh
 ./reset.sh  # type y to start reset, then type y when asked about prunning, then type no when asked to delete data
 ./rf_install.sh
 ``` 
