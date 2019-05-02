@@ -12,6 +12,7 @@ from complex_model.PostcodeLookup import PostcodeLookup
 from complex_model.RFException import LocationLookupException
 from complex_model.Common import *
 from complex_model.DefaultSettings import COUNTRY_CODE
+import numbers
 
 
 class HailAUSKeysLookup(OasisBaseKeysLookup):
@@ -72,12 +73,12 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure["address_id"] = geog_name
             uni_exposure['address_type'] = EnumResolution.Address.value
 
-        if geog_scheme == "CRL" or geog_scheme == "CRH" and type(geog_name) == int and geog_name > 0:  # ica zone
-            uni_exposure["lrg_id"] = geog_name
+        if geog_scheme == "CRL" or geog_scheme == "CRH" and isinstance(geog_name, numbers.Number) and geog_name > 0:  # ica zone
+            uni_exposure["lrg_id"] = int(geog_name)
             uni_exposure['lrg_type'] = EnumResolution.IcaZone.value
 
-        if geog_scheme == "CRO" and type(geog_name) == int and geog_name > 0:  # cresta
-            uni_exposure["zone_id"] = geog_name
+        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and geog_name > 0:  # cresta
+            uni_exposure["zone_id"] = int(geog_name)
             uni_exposure['zone_type'] = EnumResolution.Cresta.value
 
         return uni_exposure
