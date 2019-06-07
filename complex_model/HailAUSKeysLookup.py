@@ -103,7 +103,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)))
 
         uni_exposure = dict()
-        uni_exposure['origin_file_line'] = int(loc['locnumber'])
+        # uni_exposure['origin_file_line'] = int(loc['locnumber'])
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
 
