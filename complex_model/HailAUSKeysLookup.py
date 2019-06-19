@@ -1,18 +1,15 @@
 import itertools
 import json
+import numbers
 
-import oasislmf.utils.coverage
-from oasislmf.utils.metadata import (
-    OASIS_KEYS_SC,
-    OASIS_KEYS_FL,
-    OASIS_KEYS_NM,
-    OASIS_KEYS_STATUS)
+from oasislmf.utils.coverages import COVERAGE_TYPES
+from oasislmf.utils.status import OASIS_KEYS_SC, OASIS_KEYS_FL
 from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
+
 from complex_model.PostcodeLookup import PostcodeLookup
 from complex_model.RFException import LocationLookupException
 from complex_model.Common import *
 from complex_model.DefaultSettings import COUNTRY_CODE
-import numbers
 
 
 class HailAUSKeysLookup(OasisBaseKeysLookup):
@@ -23,10 +20,10 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                  model_version=None):
         self.keys_file_dir = keys_data_directory
         self._coverage_types = [
-            oasislmf.utils.coverage.BUILDING_COVERAGE_CODE,  # 1
-            oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE,  #
-            oasislmf.utils.coverage.TIME_COVERAGE_CODE,
-            oasislmf.utils.coverage.OTHER_STRUCTURES_COVERAGE_CODE]
+                COVERAGE_TYPES['buildings']['id'],  # 1, building
+                COVERAGE_TYPES['contents']['id'],  # 3, contents
+                COVERAGE_TYPES['bi']['id'],  # 4, bi
+                COVERAGE_TYPES['other']['id']]  # 2, other/motor]
         self._peril_id = None
         if model_name is not None and model_name.lower() in PerilSet.keys():
             self._peril_id = PerilSet[model_name.lower()]['OED_ID']

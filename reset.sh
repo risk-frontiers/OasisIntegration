@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export UI_VER='1.0.2'
+export UI_VER='1.1.3'
 
 read -r -p "Are you sure you want to reset this deployment?
 Note that running this script on a shared deployment (i.e. an Oasis deployment including multiple
