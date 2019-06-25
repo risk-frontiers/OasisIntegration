@@ -3,11 +3,11 @@ import json
 import numbers
 
 from oasislmf.utils.coverages import COVERAGE_TYPES
-from oasislmf.utils.status import OASIS_KEYS_SC, OASIS_KEYS_FL
+from oasislmf.utils.status import OASIS_KEYS_STATUS
 from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
 
 from complex_model.PostcodeLookup import PostcodeLookup
-from complex_model.RFException import LocationLookupException
+from complex_model.RFException import LocationLookupException, LocationNotModelledException
 from complex_model.Common import *
 from complex_model.DefaultSettings import COUNTRY_CODE
 
@@ -36,7 +36,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             return 1  # residential: this is the default behaviour when this field is missing in the workbench
         if record['occupancycode'] == 1000 or 1050 <= record['occupancycode'] <= 1099:
             return 1  # residential
-        elif 1100 <= record['occupancycode'] <= 1149:
+        elif 1100 <= record['occupancycode'] <= 1149 or 1200 <= record['occupancycode'] <= 1249:
             return 2  # commercial
         elif 1150 <= record['occupancycode'] <= 1199:
             return 3  # industrial
@@ -100,14 +100,14 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)))
 
         uni_exposure = dict()
-        # uni_exposure['origin_file_line'] = int(loc['locnumber'])
+        # uni_exposure['origin_file_line'] = int(loc['loc_id'])
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
 
-        # OED: locnumber is required
-        if 'locnumber' not in loc or loc['locnumber'] is None:
+        # OASIS: loc_id is uniquely generated for each location by oasis
+        if 'loc_id' not in loc or loc['loc_id'] is None:
             raise LocationLookupException("Location Number is required but is missing or null in the OED file")
-        uni_exposure['loc_id'] = str(loc['locnumber'])
+        uni_exposure['loc_id'] = str(loc['loc_id'])
 
         # OED: country code is also required but we'll default to AU is missing
         try:
@@ -186,7 +186,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             year_built = 0
         uni_exposure['props'] = {"YearBuilt": year_built}
 
-        # uni_exposure['modelled']
+        # uni_exposure['modelled'] # todo: when implementing flood, check that location is in flood zone
 
         return self._validate(uni_exposure)
 
@@ -194,19 +194,27 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         try:
             uni_exposure = self.create_uni_exposure(loc, coverage_type)
             return {
-                'locnumber': loc['locnumber'],
+                'loc_id': loc['loc_id'],
                 'peril_id': self._peril_id,
                 'coverage_type': coverage_type,
                 'model_data': json.dumps(uni_exposure),
-                'status': OASIS_KEYS_SC,
+                'status': OASIS_KEYS_STATUS['success']['id'],
                 'message': "OK"
             }
         except LocationLookupException as e:
             return {
-                'locnumber': loc['locnumber'],
+                'loc_id': loc['loc_id'],
                 'peril_id': self._peril_id,
                 'coverage_type': coverage_type,
-                'status': OASIS_KEYS_FL,
+                'status': OASIS_KEYS_STATUS['fail']['id'],
+                'message': str(e)
+            }
+        except LocationNotModelledException as e:
+            return {
+                'loc_id': loc['loc_id'],
+                'peril_id': self._peril_id,
+                'coverage_type': coverage_type,
+                'status': OASIS_KEYS_STATUS['nomatch']['id'],
                 'message': str(e)
             }
 
@@ -219,5 +227,5 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
 if __name__ == "__main__":
     cl = HailAUSKeysLookup(keys_data_directory="/hadoop/oasis/model_data/keys_data", model_name="hailAus")
-    test_loc = {'locnumber': 1, 'latitude': -33.8688, 'longitude': 151.2093 }
+    test_loc = {'loc_id': 1, 'latitude': -33.8688, 'longitude': 151.2093 }
     print(cl.process_location(test_loc, 1))

@@ -13,11 +13,11 @@ This script is used to transform oasis item and coverage files into cannonical r
 DEFAULT_DB = "riskfrontiersdbAUS_v2_4_1.db"
 
 RF_DEFAULT_ITEM_SQLITE_DEF = {
-    "loc_id": {"datatype": "INTEGER", "default": None},
+    "loc_id": {"datatype": "TEXT", "default": None},
     "latitude": {"datatype": "REAL", "default": None},
     "longitude": {"datatype": "REAL", "default": None},
     "address_type": {"datatype": "INTEGER", "default": None},
-    "address_id": {"datatype": "INTEGER", "default": None},
+    "address_id": {"datatype": "TEXT", "default": None},
     "best_res": {"datatype": "INTEGER", "default": None},
     "country_code": {"datatype": "TEXT", "default": None},
     "state": {"datatype": "TEXT", "default": None},
@@ -38,7 +38,7 @@ RF_DEFAULT_ITEM_SQLITE_DEF = {
 }
 
 RF_DEFAULT_COVERAGE_SQLITE_DEF = {
-    "loc_id": {"datatype": "INTEGER", "default": None},
+    "loc_id": {"datatype": "TEXT", "default": None},
     "cover_id": {"datatype": "INTEGER", "default": None},
     "peril_id": {"datatype": "INTEGER", "default": None},
     "value": {"datatype": "REAL", "default": None},
@@ -185,12 +185,10 @@ def fill_resolution_from_address_id(con, cur):
                 a.modelled,
                 a.origin_file_line
         FROM u_exposure_tmp a INNER JOIN rf_address b ON a.address_id = b.address_id 
-        WHERE NOT a.address_id IS NULL AND country_code = "au" AND 
+        WHERE NOT a.address_id IS NULL AND country_code = 'au' AND 
             (a.latitude = 0 OR a.latitude IS NULL OR a.longitude = 0 or a.longitude IS NULL)
-        UNION ALL SELECT * FROM u_exposure_tmp WHERE NOT (NOT address_id IS NULL AND country_code = "au" AND 
+        UNION ALL SELECT * FROM u_exposure_tmp WHERE NOT (NOT address_id IS NULL AND country_code = 'au' AND 
             (latitude = 0 OR latitude IS NULL OR longitude = 0 or longitude IS NULL));"""
-    lookup_cond = """NOT a.address_id IS NULL AND country_code = "au" AND (a.latitude = 0 OR a.longitude = 0)"""
-    address_fill_sql = address_fill_sql.format(lookup_cond)
     cur.execute(address_fill_sql)
     con.commit()
 

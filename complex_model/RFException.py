@@ -11,6 +11,11 @@ class LocationLookupException(RFBaseException):
         super(LocationLookupException, self).__init__(message)
 
 
+class LocationNotModelledException(RFBaseException):
+    def __init__(self, message):
+        super(LocationNotModelledException, self).__init__(message)
+
+
 class ArgumentOutOfRangeException(RFBaseException):
     def __init__(self, message):
-        super(LocationLookupException, self).__init__(message)
+        super(ArgumentOutOfRangeException, self).__init__(message)

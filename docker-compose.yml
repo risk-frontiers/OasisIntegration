@@ -86,6 +86,7 @@ services:
      - ./tmp:/tmp:rw
      - ./log:/var/log/oasis:rw
      - ./model_data:/var/oasis/model_data/:rw
+     - ./tests:/var/oasis/tests/:rw
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
   server-db:
     image: mysql
