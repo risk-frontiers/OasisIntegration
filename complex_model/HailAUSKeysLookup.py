@@ -94,9 +94,10 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         """
 
         # OED: locperilscovered is required
-        peril_covered = int(loc['locperilscovered']) \
-            if 'locperilscovered' in loc and loc['locperilscovered'] is not None else 0  # todo: check that this is ok
-        if peril_covered > 0 and not self._peril_id & peril_covered > 0:
+        if 'locperilscovered' not in loc or loc['locperilscovered'] is None:
+            raise LocationLookupException('LocPerilsCovered is required')
+        loc_peril_covered_ids = get_covered_ids(loc['locperilscovered'])
+        if self._peril_id not in loc_peril_covered_ids:
             raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)))
 
         uni_exposure = dict()
@@ -226,6 +227,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
 
 if __name__ == "__main__":
-    cl = HailAUSKeysLookup(keys_data_directory="/hadoop/oasis/model_data/keys_data", model_name="hailAus")
-    test_loc = {'loc_id': 1, 'latitude': -33.8688, 'longitude': 151.2093 }
+    cl = HailAUSKeysLookup(keys_data_directory="/home/AD.RISKFRONTIERS.COM/tahiry/oasis/model_data/keys_data",
+                           model_name="hailAus")
+    test_loc = {'loc_id': 1, 'latitude': -33.8688, 'longitude': 151.2093, 'locperilscovered': 'XHL'}
     print(cl.process_location(test_loc, 1))
