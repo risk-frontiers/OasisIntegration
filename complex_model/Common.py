@@ -6,6 +6,7 @@ from enum import Enum
 from oasislmf.utils.peril import PERILS, PERIL_GROUPS
 from complex_model.RFException import ArgumentOutOfRangeException
 
+
 class EnumPeril(Enum):
     Structure = -3
     MultiPeril = -2
@@ -19,15 +20,15 @@ class EnumPeril(Enum):
 
 
 def oed_to_rf_peril(oed_peril_id):
-    if oed_peril_id == 8192:
+    if oed_peril_id == "XHL":
         return EnumPeril.Hail
-    if oed_peril_id == 1:
+    if oed_peril_id == "QEQ":
         return EnumPeril.Quake
-    if oed_peril_id == 512:
+    if oed_peril_id == "ORF":
         return EnumPeril.RiverineFlood
-    if oed_peril_id == 262144:
+    if oed_peril_id == "BBF":
         return EnumPeril.Bushfire
-    if oed_peril_id == 64:
+    if oed_peril_id == "WTC":
         return EnumPeril.Cyclone
 
 

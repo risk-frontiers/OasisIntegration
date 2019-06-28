@@ -1,0 +1,13 @@
+OED Field,Data Type,Parsed as,Comment
+locperilscovered,varchar(250),str,OED
+occupancycode,int,int,OED
+loc_id,int,int,OASIS
+countrycode,char(2),str,"OED
+"
+geogscheme,varchar(5),str,OED
+geogname,nvarchar(50),str,OED
+postalcode,nvarchar(20),int,OED
+latitude,decimal,float,OED
+longitude,decimal,float,OED
+areacode,nvarchar(20),str,OED
+yearbuilt,int,int,OED

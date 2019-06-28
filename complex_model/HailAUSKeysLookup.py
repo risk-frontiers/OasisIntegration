@@ -66,17 +66,25 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :param geog_name: valid RF supported region value
         :return: the uni exposure object where the respective geo-location has been set
         """
-        if geog_scheme == "XGNAF" and type(geog_name) == str:  # GNAF address
+        # GNAF address
+        if geog_scheme == "GNAF" and type(geog_name) == str:
             uni_exposure["address_id"] = geog_name
             uni_exposure['address_type'] = EnumResolution.Address.value
 
-        if geog_scheme == "CRL" or geog_scheme == "CRH" and isinstance(geog_name, numbers.Number) and geog_name > 0:  # ica zone
+        # ica zone
+        if geog_scheme == "ICA" or isinstance(geog_name, numbers.Number) and geog_name > 0:
             uni_exposure["lrg_id"] = int(geog_name)
             uni_exposure['lrg_type'] = EnumResolution.IcaZone.value
 
-        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and geog_name > 0:  # cresta
+        # cresta
+        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and geog_name > 0:
             uni_exposure["zone_id"] = int(geog_name)
             uni_exposure['zone_type'] = EnumResolution.Cresta.value
+
+        # postcode
+        if geog_scheme == "PC4" and isinstance(geog_name, numbers.Number) and geog_name > 0:
+            uni_exposure['med_id'] = int(geog_name)
+            uni_exposure['med_type'] = EnumResolution.Postcode.value
 
         return uni_exposure
 
@@ -119,6 +127,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # address, ICA zone and cresta
         uni_exposure['address_id'] = None
         uni_exposure['address_type'] = None
+        uni_exposure['med_id'] = None
+        uni_exposure['med_type'] = None
         uni_exposure['lrg_id'] = None
         uni_exposure['lrg_type'] = None
         uni_exposure['zone_id'] = None
@@ -132,13 +142,10 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             except (ValueError, TypeError):
                 pass
 
-        # postcode
-        try:
-            uni_exposure['med_id'] = int(loc['postalcode']) if 'postalcode' in loc else None
-            uni_exposure['med_type'] = EnumResolution.Postcode.value if uni_exposure['med_id'] > 0 else None
-        except (ValueError, TypeError):
-            uni_exposure['med_id'] = None
-            uni_exposure['med_type'] = None
+        # overwrite postcode from 'postalcode' field
+        if 'postalcode' in loc and isinstance(loc['postalcode'], numbers.Number):
+            uni_exposure['med_id'] = int(loc['postalcode'])
+            uni_exposure['med_type'] = EnumResolution.Postcode.value
 
         # lat/lon
         uni_exposure['latitude'] = None
@@ -229,5 +236,5 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 if __name__ == "__main__":
     cl = HailAUSKeysLookup(keys_data_directory="/home/AD.RISKFRONTIERS.COM/tahiry/oasis/model_data/keys_data",
                            model_name="hailAus")
-    test_loc = {'loc_id': 1, 'latitude': -33.8688, 'longitude': 151.2093, 'locperilscovered': 'XHL'}
+    test_loc = {'loc_id': 1, 'latitude': -33.8688, 'longitude': 151.2093, 'locperilscovered': 'AA1'}
     print(cl.process_location(test_loc, 1))
