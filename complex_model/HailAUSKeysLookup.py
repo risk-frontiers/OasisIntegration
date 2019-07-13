@@ -27,6 +27,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         self._peril_id = None
         if model_name is not None and model_name.lower() in PerilSet.keys():
             self._peril_id = PerilSet[model_name.lower()]['OED_ID']
+        self._postcode_lookup = None
         if self.keys_file_dir:
             self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
 
@@ -47,6 +48,14 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         except TypeError:
             raise LocationLookupException("Badly formatted occupancy code " + str(record['occupancycode']),
                                           error_code=124)
+
+    def _is_motor(self, record):
+        try:
+            if 5850 <= record['constructioncode'] < 5950:
+                return True
+            return False
+        except KeyError or TypeError:
+            return False
 
     def _validate(self, uni_exposure):
         """This validates the uni_exposure as per the Multi-Peril Workbench specification
@@ -163,7 +172,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                     and AU_BOUNDING_BOX['MIN'][1] <= loc["latitude"] <= AU_BOUNDING_BOX['MAX'][1]:
                 uni_exposure['latitude'] = loc['latitude']
                 uni_exposure['longitude'] = loc['longitude']
-                if uni_exposure['med_id'] is None or uni_exposure['med_id'] == 0 and self._postcode_lookup:
+                if (uni_exposure['med_id'] is None or uni_exposure['med_id'] == 0) and self._postcode_lookup:
                     uni_exposure['med_id'] = self._postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
                 if uni_exposure['lrg_id'] is None or uni_exposure['lrg_id'] == 0:
                     pass  # not required at lat/lon level
@@ -200,6 +209,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         except (ValueError, TypeError, KeyError):
             year_built = 0
         uni_exposure['props'] = {"YearBuilt": year_built}
+
+        uni_exposure['props'].update({"IsMotor": self._is_motor(loc)})
 
         # uni_exposure['modelled'] # todo: when implementing flood, check that location is in flood zone
 
