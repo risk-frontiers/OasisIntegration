@@ -103,7 +103,7 @@ def main():
     if not os.path.exists(inputs_fp):
         raise Exception('Inputs directory does not exist')
 
-    inputs_fp_csv = os.path.join(inputs_fp, "csv")
+    inputs_fp_csv = os.path.join(inputs_fp, "")
     complex_items_filename = "complex_items.csv"  # args.complex_items_filename
     complex_items_fp = os.path.join(inputs_fp_csv, complex_items_filename)
     if not os.path.exists(complex_items_fp):
