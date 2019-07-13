@@ -126,6 +126,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure = dict()
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
+        if uni_exposure['cover_id'] == EnumCover.Motor and not self._is_motor(loc):
+            uni_exposure['cover_id'] = EnumCover.Building
 
         # OASIS: loc_id is uniquely generated for each location by oasis
         if 'loc_id' not in loc or loc['loc_id'] is None:
@@ -209,8 +211,6 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         except (ValueError, TypeError, KeyError):
             year_built = 0
         uni_exposure['props'] = {"YearBuilt": year_built}
-
-        uni_exposure['props'].update({"IsMotor": self._is_motor(loc)})
 
         # uni_exposure['modelled'] # todo: when implementing flood, check that location is in flood zone
 

@@ -631,17 +631,25 @@ class CreateUniExposureTests(RFBaseTest):
             self.assertEqual(EnumResolution.Postcode.value, exposure['med_type'])
             self.assertEqual(EnumResolution.LatLong.value, exposure['best_res'])
 
-    def test_motor_exposure(self):
+    def test_motor_exposure_motor(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'postalcode': 2000}
 
-        for coverage in COVERAGES:
-            for cc in range(5850, 5950):
-                loc = copy.deepcopy(default_loc)
-                loc.update({'constructioncode': cc})
-                exposure = lookup.create_uni_exposure(loc, coverage['id'])
-                self.assertTrue(exposure['props']['IsMotor'])
+        for cc in range(5850, 5950):
+            loc = copy.deepcopy(default_loc)
+            loc.update({'constructioncode': cc})
+            exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
+            self.assertEqual(EnumCover.Motor, exposure['cover_id'])
+
+    def test_motor_exposure_building(self):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'postalcode': 2000}
+
+        loc = copy.deepcopy(default_loc)
+        exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
+        self.assertEqual(EnumCover.Building, exposure['cover_id'])
 
 
 if __name__ == '__main__':

@@ -110,7 +110,7 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
                     rf_item[key] = model_data[key]
 
         # if not rf_item['loc_id']:
-            # rf_item['loc_id'] = "rf_loc_" + str(model_data['loc_id'])
+        #     rf_item['loc_id'] = "rf_loc_" + str(model_data['loc_id'])
         rf_item['loc_id'] = str(item_row['item_id'])
 
         # building coverage row
@@ -138,7 +138,7 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
     fill_resolution_from_address_id(con, cur)
     fill_resolution_from_lat_long(con, cur)
 
-    # post processing
+    # post processing ...
     delete_temp_exposure = "DROP TABLE u_exposure_tmp;"
     ofl_exposure_index = "CREATE INDEX ofl_exposure_index ON u_exposure (origin_file_line);"
     ofl_coverage_index = "CREATE INDEX ofl_coverage_index ON u_coverage (origin_file_line);"

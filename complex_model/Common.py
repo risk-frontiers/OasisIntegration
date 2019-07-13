@@ -155,12 +155,19 @@ def to_db_column_name(res):
     raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
 
 
+class EnumCover(Enum):
+    Building = 1
+    Contents = 2
+    BI = 3
+    Motor = 4
+
+
 def oed_to_rf_coverage(oed_cover):
     if oed_cover == 1:
-        return 1  # Building
+        return EnumCover.Building  # Building
     if oed_cover == 2:
-        return 4  # Motor
+        return EnumCover.Motor  # Motor
     if oed_cover == 3:
-        return 2  # Contents
+        return EnumCover.Contents  # Contents
     if oed_cover == 4:
-        return 3  # Business Interruption
+        return EnumCover.BI  # Business Interruption
