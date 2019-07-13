@@ -104,7 +104,7 @@ def to_uni_scale_id(res):
     if res == EnumResolution.Catchment:
         return "catchment_id"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "code"  # todo: this is wrong
+        return "error_code"  # todo: this is wrong
     raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
 
 
@@ -122,7 +122,7 @@ def to_uni_scale_type(res):
     if res == EnumResolution.Catchment:
         return "catchment_type"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "code"  # todo: wrong
+        return "error_code"  # todo: wrong
     # raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
     return None
 
@@ -151,7 +151,7 @@ def to_db_column_name(res):
     if res == EnumResolution.BeeHive:
         return "beehive_50km"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "code"
+        return "error_code"
     raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
 
 

@@ -31,17 +31,22 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
 
     def _get_lob_id(self, record):
-        """This transforms the occupancy code into Multi-Peril Workbench specified line of business"""
-        if 'occupancycode' not in record:
-            return 1  # residential: this is the default behaviour when this field is missing in the workbench
-        if record['occupancycode'] == 1000 or 1050 <= record['occupancycode'] <= 1099:
-            return 1  # residential
-        elif 1100 <= record['occupancycode'] <= 1149 or 1200 <= record['occupancycode'] <= 1249:
-            return 2  # commercial
-        elif 1150 <= record['occupancycode'] <= 1199:
-            return 3  # industrial
-        else:
-            raise LocationLookupException("Unsupported occupancy code " + str(record['occupancycode']))
+        """This transforms the occupancy error_code into Multi-Peril Workbench specified line of business"""
+        try:
+            if 'occupancycode' not in record:
+                return 1  # residential: this is the default behaviour when this field is missing in the workbench
+            if record['occupancycode'] == 1000 or 1050 <= record['occupancycode'] <= 1099:
+                return 1  # residential
+            elif 1100 <= record['occupancycode'] <= 1149 or 1200 <= record['occupancycode'] <= 1249:
+                return 2  # commercial
+            elif 1150 <= record['occupancycode'] <= 1199:
+                return 3  # industrial
+            else:
+                raise LocationLookupException("Unsupported occupancy code " + str(record['occupancycode']),
+                                              error_code=123)
+        except TypeError:
+            raise LocationLookupException("Badly formatted occupancy code " + str(record['occupancycode']),
+                                          error_code=124)
 
     def _validate(self, uni_exposure):
         """This validates the uni_exposure as per the Multi-Peril Workbench specification
@@ -54,7 +59,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         if not ((uni_exposure['latitude'] and uni_exposure['longitude']) or uni_exposure['address_id'] or
                 uni_exposure['med_id'] or uni_exposure['zone_id'] or uni_exposure['lrg_id']):
             raise LocationLookupException("A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon "
-                                          "or address coordinate")
+                                          "or address coordinate", error_code=110)
 
         return uni_exposure
 
@@ -72,17 +77,17 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['address_type'] = EnumResolution.Address.value
 
         # ica zone
-        if geog_scheme == "ICA" or isinstance(geog_name, numbers.Number) and geog_name > 0:
+        if geog_scheme == "ICA" and isinstance(geog_name, numbers.Number) and 0 < geog_name < 50:
             uni_exposure["lrg_id"] = int(geog_name)
             uni_exposure['lrg_type'] = EnumResolution.IcaZone.value
 
         # cresta
-        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and geog_name > 0:
+        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and 0 < geog_name < 50:
             uni_exposure["zone_id"] = int(geog_name)
             uni_exposure['zone_type'] = EnumResolution.Cresta.value
 
         # postcode
-        if geog_scheme == "PC4" and isinstance(geog_name, numbers.Number) and geog_name > 0:
+        if geog_scheme == "PC4" and isinstance(geog_name, numbers.Number) and 0 < geog_name:
             uni_exposure['med_id'] = int(geog_name)
             uni_exposure['med_type'] = EnumResolution.Postcode.value
 
@@ -103,22 +108,23 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
         # OED: locperilscovered is required
         if 'locperilscovered' not in loc or loc['locperilscovered'] is None:
-            raise LocationLookupException('LocPerilsCovered is required')
+            raise LocationLookupException('LocPerilsCovered is required', error_code=101)
         loc_peril_covered_ids = get_covered_ids(loc['locperilscovered'])
         if self._peril_id not in loc_peril_covered_ids:
-            raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)))
+            raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)),
+                                          error_code=122)
 
         uni_exposure = dict()
-        # uni_exposure['origin_file_line'] = int(loc['loc_id'])
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
 
         # OASIS: loc_id is uniquely generated for each location by oasis
         if 'loc_id' not in loc or loc['loc_id'] is None:
-            raise LocationLookupException("Location Number is required but is missing or null in the OED file")
+            raise LocationLookupException("Location ID is required but is missing",
+                                          error_code=102)
         uni_exposure['loc_id'] = str(loc['loc_id'])
 
-        # OED: country code is also required but we'll default to AU is missing
+        # OED: country error_code is also required but we'll default to AU if missing
         try:
             uni_exposure['country_code'] = str(loc["countrycode"]).lower()
         except (ValueError, KeyError):
@@ -150,7 +156,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # lat/lon
         uni_exposure['latitude'] = None
         uni_exposure['longitude'] = None
-        if loc['longitude'] is not None and loc['latitude'] is not None \
+        if 'longitude' in loc and loc['longitude'] is not None \
+                and 'latitude' in loc and loc['latitude'] is not None \
                 and not loc['longitude'] == 0 and not loc['latitude'] == 0:
             if AU_BOUNDING_BOX['MIN'][0] <= loc["longitude"] <= AU_BOUNDING_BOX['MAX'][0] \
                     and AU_BOUNDING_BOX['MIN'][1] <= loc["latitude"] <= AU_BOUNDING_BOX['MAX'][1]:
@@ -158,10 +165,10 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                 uni_exposure['longitude'] = loc['longitude']
                 if uni_exposure['med_id'] is None or uni_exposure['med_id'] == 0 and self._postcode_lookup:
                     uni_exposure['med_id'] = self._postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
-                if uni_exposure['lrg_id'] is None:
+                if uni_exposure['lrg_id'] is None or uni_exposure['lrg_id'] == 0:
                     pass  # not required at lat/lon level
             else:
-                raise LocationLookupException("Location is not in Australia")
+                raise LocationLookupException("Location is not in Australia", error_code=121)
 
         # setting best res
         if uni_exposure['lrg_id'] is not None and uni_exposure['lrg_id'] > 0:
@@ -172,7 +179,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['best_res'] = EnumResolution.Postcode.value
         if uni_exposure['address_id'] is not None \
                 and isinstance(uni_exposure['address_id'], str) \
-                and len(uni_exposure['address_id']) == 14:  # todo: check for ok GNAF?
+                and len(uni_exposure['address_id']) == 14:
             uni_exposure['best_res'] = EnumResolution.Address.value
         if uni_exposure['latitude'] is not None and uni_exposure['longitude'] is not None:
             uni_exposure['best_res'] = EnumResolution.LatLong.value
@@ -231,10 +238,3 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         for loc, coverage_type in \
                 itertools.product(locs_seq, self._coverage_types):
             yield self.process_location(loc, coverage_type)
-
-
-if __name__ == "__main__":
-    cl = HailAUSKeysLookup(keys_data_directory="/home/AD.RISKFRONTIERS.COM/tahiry/oasis/model_data/keys_data",
-                           model_name="hailAus")
-    test_loc = {'loc_id': 1, 'latitude': -33.8688, 'longitude': 151.2093, 'locperilscovered': 'AA1'}
-    print(cl.process_location(test_loc, 1))

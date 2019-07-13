@@ -1,2 +1,2 @@
--e git+https://git@github.com/OasisLMF/OasisLMF.git@develop#egg=oasislmf
+oasislmf==1.3.10
 msgpack
