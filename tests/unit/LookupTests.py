@@ -640,7 +640,7 @@ class CreateUniExposureTests(RFBaseTest):
             loc = copy.deepcopy(default_loc)
             loc.update({'constructioncode': cc})
             exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
-            self.assertEqual(EnumCover.Motor, exposure['cover_id'])
+            self.assertEqual(EnumCover.Motor.value, exposure['cover_id'])
 
     def test_motor_exposure_building(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
@@ -649,7 +649,7 @@ class CreateUniExposureTests(RFBaseTest):
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
-        self.assertEqual(EnumCover.Building, exposure['cover_id'])
+        self.assertEqual(EnumCover.Building.value, exposure['cover_id'])
 
 
 if __name__ == '__main__':

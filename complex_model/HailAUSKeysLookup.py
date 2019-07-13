@@ -1,6 +1,7 @@
 import itertools
 import json
 import numbers
+import math
 
 from oasislmf.utils.coverages import COVERAGE_TYPES
 from oasislmf.utils.status import OASIS_KEYS_STATUS
@@ -126,8 +127,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure = dict()
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
-        if uni_exposure['cover_id'] == EnumCover.Motor and not self._is_motor(loc):
-            uni_exposure['cover_id'] = EnumCover.Building
+        if uni_exposure['cover_id'] == EnumCover.Motor.value and not self._is_motor(loc):
+            uni_exposure['cover_id'] = EnumCover.Building.value
 
         # OASIS: loc_id is uniquely generated for each location by oasis
         if 'loc_id' not in loc or loc['loc_id'] is None:
@@ -167,9 +168,10 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # lat/lon
         uni_exposure['latitude'] = None
         uni_exposure['longitude'] = None
-        if 'longitude' in loc and loc['longitude'] is not None \
-                and 'latitude' in loc and loc['latitude'] is not None \
-                and not loc['longitude'] == 0 and not loc['latitude'] == 0:
+        if 'longitude' in loc and isinstance(loc['longitude'], numbers.Number) \
+                and 'latitude' in loc and isinstance(loc['latitude'], numbers.Number) \
+                and not loc['longitude'] == 0 and not loc['latitude'] == 0 \
+                and not math.isnan(loc['longitude']) and not math.isnan(loc['latitude']):
             if AU_BOUNDING_BOX['MIN'][0] <= loc["longitude"] <= AU_BOUNDING_BOX['MAX'][0] \
                     and AU_BOUNDING_BOX['MIN'][1] <= loc["latitude"] <= AU_BOUNDING_BOX['MAX'][1]:
                 uni_exposure['latitude'] = loc['latitude']

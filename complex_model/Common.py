@@ -164,10 +164,10 @@ class EnumCover(Enum):
 
 def oed_to_rf_coverage(oed_cover):
     if oed_cover == 1:
-        return EnumCover.Building  # Building
+        return EnumCover.Building.value  # Building
     if oed_cover == 2:
-        return EnumCover.Motor  # Motor
+        return EnumCover.Motor.value  # Motor
     if oed_cover == 3:
-        return EnumCover.Contents  # Contents
+        return EnumCover.Contents.value  # Contents
     if oed_cover == 4:
-        return EnumCover.BI  # Business Interruption
+        return EnumCover.BI.value  # Business Interruption
