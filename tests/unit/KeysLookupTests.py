@@ -4,22 +4,13 @@ import copy
 from oasislmf.utils.coverages import COVERAGE_TYPES
 
 from complex_model import HailAUSKeysLookup
-from complex_model.RFException import RFBaseException
 from complex_model.Common import *
+from tests.unit.RFBaseTest import RFBaseTestCase
 
 COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["other"], COVERAGE_TYPES["bi"]]
 
 
-class RFBaseTest(unittest.TestCase):
-    def assertRaisesWithErrorCode(self, error_code, func, *args, **kwargs):
-        try:
-            func(*args, **kwargs)
-            self.fail()
-        except RFBaseException as inst:
-            self.assertEqual(error_code, inst.error_code)
-
-
-class OccupancyCodeTests(RFBaseTest):
+class OccupancyCodeTests(RFBaseTestCase):
     """This test case provides validation that the implemented lob lookup error_code implements
     the specification as described in the documentation of the oasis integration documentation
     """
@@ -50,13 +41,7 @@ class OccupancyCodeTests(RFBaseTest):
             self.assertEqual(lookup._get_lob_id({"occupancycode": cc}), 3)
 
 
-class PostcodeLookupTests(RFBaseTest):
-    """This test case provides validation for the postcode lookup method
-    """
-    pass
-
-
-class MotorExposureTests(RFBaseTest):
+class MotorExposureTests(RFBaseTestCase):
     """This test case provides check for motor exposure methods
     """
     def test_is_motor_true(self):
@@ -75,7 +60,7 @@ class MotorExposureTests(RFBaseTest):
         self.assertFalse(lookup._is_motor(loc))
 
 
-class OEDGeogSchemeTests(RFBaseTest):
+class OEDGeogSchemeTests(RFBaseTestCase):
     """This test case provides validation that the GeogScheme columns are used as described in the
     specification included in the oasis integration documentation
     """
@@ -120,7 +105,7 @@ class OEDGeogSchemeTests(RFBaseTest):
             self.assertEqual(uni_exposure["zone_type"], EnumResolution.Cresta.value)
 
 
-class CreateUniExposureTests(RFBaseTest):
+class CreateUniExposureTests(RFBaseTestCase):
     """This test ensures that create_uni_exposure method behaves as expected
     1. required field are reported as failed lookup
     2. unsupported peril

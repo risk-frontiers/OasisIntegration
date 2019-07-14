@@ -80,4 +80,3 @@ def gulcalc_sqlite_to_bin(db_fp, output, num_sample, stream_type=1):
         s = struct.Struct('if')
         t = s.pack(*losses)
         output.write(t)
-

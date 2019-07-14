@@ -1,9 +1,9 @@
 OED Field,Data Type,Parsed as,Comment
 locperilscovered,varchar(250),str,OED
 occupancycode,int,int,OED
+constructioncode,int,int,OED
 loc_id,int,int,OASIS
-countrycode,char(2),str,"OED
-"
+countrycode,char(2),str,OED
 geogscheme,varchar(5),str,OED
 geogname,nvarchar(50),str,OED
 postalcode,nvarchar(20),int,OED
