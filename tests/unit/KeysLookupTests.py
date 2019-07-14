@@ -177,6 +177,27 @@ class CreateUniExposureTests(RFBaseTestCase):
             self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
             self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
             self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
+            self.assertFalse('state' in exposure and exposure['state'] is not None)
+
+    def test_address_state(self):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': "GNAF", 'geogname1': "GANSW123456789",
+                       'areacode': 'au'}
+
+        for coverage in COVERAGES:
+            loc = copy.deepcopy(default_loc)
+            exposure = lookup.create_uni_exposure(loc, coverage['id'])
+            self.assertEqual("GANSW123456789", exposure['address_id'])
+            self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+            self.assertEqual(EnumResolution.Address.value, exposure['best_res'])
+            self.assertEqual('au', exposure['state'])
+
+            self.assertFalse('latitude' in exposure and exposure['latitude'] is not None)
+            self.assertFalse('longitude' in exposure and exposure['longitude'] is not None)
+            self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
+            self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
+            self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
     def test_latlon_level(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
@@ -196,8 +217,9 @@ class CreateUniExposureTests(RFBaseTestCase):
             self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
             self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
             self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
+            self.assertFalse('state' in exposure and exposure['state'] is not None)
 
-    def test_address_latlon_level(self):
+    def test_address_latlon(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
@@ -590,7 +612,7 @@ class CreateUniExposureTests(RFBaseTestCase):
 
             self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
 
-    def test_address_latlon_postcode_cresta_ica_zone(self):
+    def test_address_latlon_postcode_cresta_ica_zone_state(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
@@ -599,7 +621,7 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'geogscheme1': 'ICA', 'geogname1': 49,
                        'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
                        'geogscheme3': 'CRO', 'geogname3': 2,
-                       'postalcode': 4000}
+                       'postalcode': 4000, 'areacode': 'au'}
 
         for coverage in COVERAGES:
             loc = copy.deepcopy(default_loc)
@@ -615,6 +637,7 @@ class CreateUniExposureTests(RFBaseTestCase):
             self.assertEqual(4000, exposure['med_id'])
             self.assertEqual(EnumResolution.Postcode.value, exposure['med_type'])
             self.assertEqual(EnumResolution.LatLong.value, exposure['best_res'])
+            self.assertEqual('au', exposure['state'])
 
     def test_motor_exposure_motor(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")

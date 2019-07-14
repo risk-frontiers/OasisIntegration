@@ -198,9 +198,10 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['best_res'] = EnumResolution.LatLong.value
 
         try:
-            if loc["areacode"] != 0:
-                uni_exposure['state'] = str(loc['areacode'])
-        except (ValueError, TypeError, KeyError):
+            areacode = loc["areacode"]
+            if areacode != 0 and not (isinstance(areacode, numbers.Number) and math.isnan(areacode)):
+                uni_exposure['state'] = str(areacode)
+        except (ValueError, TypeError, KeyError) as e:
             uni_exposure['state'] = None
 
         # uni_exposure['catchment_type'] # todo: when implementing flood
