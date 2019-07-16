@@ -25,7 +25,7 @@
             },
             {
                  "static_motor":{
-                    "name": "Static Motor",
+                    "name": "Static Motor Vehicle",
             "desc": "Execute Risk Frontiers engine with Static Motor enabled",
                     "type":"boolean",
                     "default": false

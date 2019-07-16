@@ -130,11 +130,11 @@ def main():
         items_pd = pd.read_csv(p)
     with TemporaryDirectory() as working_dir:
         log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
-        log_file = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
+        log_fp = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
         if _DEBUG:
-            working_dir = "/hadoop/oasis/tmp"
+            working_dir = "/tmp/oasis_debug"
             clean_directory(working_dir)
-            log_file = os.path.join(working_dir, log_filename)
+            log_fp = os.path.join(working_dir, log_filename)
         # Write out RF canonical input files
         risk_platform_data = os.path.join(DS.MODEL_DATA_DIRECTORY)
         if not is_valid_model_data(risk_platform_data):
@@ -169,6 +169,10 @@ def main():
             if 'individual_risk_mode' in model_settings else DS.DEFAULT_INDIVIDUAL_RISK_MODE,
             "StaticMotor": model_settings['static_motor']
             if 'static_motor' in model_settings else DS.DEFAULT_STATIC_MOTOR,
+            "DemandSurge": model_settings['demand_surge']
+            if 'demand_surge' in model_settings else DS.DEFAULT_DEMAND_SURGE,
+            "InputScaling": model_settings['leakage_factor']
+            if 'leakage_factor' in model_settings else DS.DEFAULT_INPUT_SCALING,
         }
 
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
@@ -180,7 +184,7 @@ def main():
                                                                      "Risk.Platform.Core", "Risk.Platform.Core"),
                                                         oasis_param_fp,
                                                         "--debug" if _DEBUG else "",
-                                                        log_file)
+                                                        log_fp)
         try:
             subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
             if do_item_output:
@@ -194,4 +198,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
