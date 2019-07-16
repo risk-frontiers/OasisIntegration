@@ -2,12 +2,12 @@
     "model_settings":[
         {"event_set":{
           "name": "Event Set",
-          "desc": "Either Probablistic or Historic",
+          "desc": "Either Probabilistic or Historic",
               "type":"dictionary",
                "default": "P",
 
                       "values":{
-                        "P": "Proabilistic"
+                        "P": "Probabilistic"
                     }
             }
          },
@@ -24,18 +24,18 @@
 
             },
             {
-                 "peril_custom":{
-                    "name": "Complex Model Peril",
-            "desc": "Run model with Custom Peril",
+                 "static_motor":{
+                    "name": "Static Motor",
+            "desc": "Execute Risk Frontiers engine with Static Motor enabled",
                     "type":"boolean",
                     "default": false
 
                   }
             },
             {
-                 "static_motor":{
-                    "name": "Static Motor",
-            "desc": "Execute Risk Frontiers engine with Static Motor enabled",
+                 "demand_surge":{
+                    "name": "Demand Surge",
+            "desc": "Execute Risk Frontiers engine with Demand Surge enabled",
                     "type":"boolean",
                     "default": false
 
@@ -57,8 +57,8 @@
         "PerilCodes":{
             "type":"dictionary",
             "values":{
-                "WW1": "Windstorm with storm surge",
-                "WW2": "Windstorm w/o storm surge"
+                "XHL": "Hailstorm",
+                "XX1": "Convective storm peril group"
             }
          }
         }
