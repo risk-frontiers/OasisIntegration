@@ -6,6 +6,13 @@ export OASIS_VER='1.2.0'
 export UI_VER='1.2.0'
 
 cd ${SCRIPT_DIR}
+# Customize BATCH_COUNT in conf.ini
+SCALE_FACTOR=16 # ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
+BATCH_COUNT=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${SCALE_FACTOR})
+BATCH_COUNT=$([ ${BATCH_COUNT} -le 1 ] && echo 1 || echo ${BATCH_COUNT})
+VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
+BATCH_COUNT=$([ ${VCPU_COUNT} -le ${BATCH_COUNT} ] && echo ${VCPU_COUNT} || echo ${BATCH_COUNT})
+sed -i '/KTOOLS_BATCH_COUNT/c\KTOOLS_BATCH_COUNT = '${BATCH_COUNT} conf.ini
 
 # verify model data
 if [[ -d ${MODEL_DATA} ]]
