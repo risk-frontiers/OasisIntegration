@@ -2,8 +2,8 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 MODEL_DATA=${SCRIPT_DIR}/"model_data"
 
-export OASIS_VER='1.1.2'
-export UI_VER='1.1.3'
+export OASIS_VER='1.2.0'
+export UI_VER='1.2.0'
 
 cd ${SCRIPT_DIR}
 
