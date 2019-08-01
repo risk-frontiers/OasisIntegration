@@ -1,7 +1,7 @@
 version: '3'
 services:
   server:
-   image: coreoasis/api_server:latest
+   image: coreoasis/api_server:${OASIS_API_VER}
    container_name: oasis_api_server
    ports:
      - 8000:8000
@@ -31,9 +31,9 @@ services:
      - STARTUP_RUN_MIGRATIONS=true
    volumes:
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
-     - ./model_resource.json:/var/www/oasis/src/server/static/model_resource.json
+     - ./meta-data/model_resource.json:/var/www/oasis/src/server/static/model_resource.json
   worker-monitor:
-   image: coreoasis/api_server:latest
+   image: coreoasis/api_server:${OASIS_API_VER}
    container_name: oasis_worker_monitor
    command: [wait-for-server, 'server:8000', celery, worker, -A, src.server.oasisapi, --loglevel=INFO]
    links:
@@ -60,18 +60,20 @@ services:
    volumes:
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
   worker:
-    image: coreoasis/custom_model_worker:latest
+    image: coreoasis/custom_model_worker:${MODEL_VER}
     container_name: oasis_complex_model
     build:
       context: .
       dockerfile: Dockerfile.custom_model_worker
+      args:
+        - worker_ver=${OASIS_API_VER}
     links:
      - celery-db
      - rabbit:myrabbit
     environment:
      - OASIS_MODEL_SUPPLIER_ID=RiskFrontiers
      - OASIS_MODEL_ID=HailAUS
-     - OASIS_MODEL_VERSION_ID=7.0.0.0
+     - OASIS_MODEL_VERSION_ID=${MODEL_VER}
      - OASIS_RABBIT_HOST=rabbit
      - OASIS_RABBIT_PORT=5672
      - OASIS_RABBIT_USER=rabbit
@@ -135,3 +137,14 @@ services:
     links:
      - celery-db
      - rabbit
+  user-interface:
+    restart: always
+    image: coreoasis/oasisui_app:${OASIS_UI_VER}
+    environment:
+     - API_IP=server
+     - API_PORT=8000
+     - API_VERSION=v1
+     - API_SHARE_FILEPATH=./downloads
+     - OASIS_ENVIRONMENT=oasis_localhost
+    ports:
+     - 8080:3838

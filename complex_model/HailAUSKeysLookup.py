@@ -18,7 +18,9 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                  keys_data_directory=None,
                  supplier=None,
                  model_name=None,
-                 model_version=None):
+                 model_version=None,
+                 complex_lookup_config_fp=None,
+                 output_directory=None):
         self.keys_file_dir = keys_data_directory
         self._coverage_types = [
                 COVERAGE_TYPES['buildings']['id'],  # 1, building
