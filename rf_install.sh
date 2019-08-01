@@ -3,11 +3,20 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 MODEL_DATA=${SCRIPT_DIR}/"model_data"
 
 export OASIS_VER='1.2.0'
-export UI_VER='1.2.0'
+export OASIS_UI_VER='1.2.0'
+
+file_docker='docker/Dockerfile'
+file_versions='data_version.json'
+# Read and set versions
+    env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER')
+    for var_name in "${env_vars[@]}"; do
+            var_value=$(cat $file_versions | grep $var_name | awk -F'"' '{ print $4 }')
+        export $var_name=$var_value
+    done
 
 cd ${SCRIPT_DIR}
 # Customize BATCH_COUNT in conf.ini
-SCALE_FACTOR=16 # ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
+SCALE_FACTOR=20 # ideally between 10 and 20 and represents the consumption of memory by the RF .net engine
 BATCH_COUNT=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${SCALE_FACTOR})
 BATCH_COUNT=$([ ${BATCH_COUNT} -le 1 ] && echo 1 || echo ${BATCH_COUNT})
 VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
@@ -63,26 +72,3 @@ docker build -f Dockerfile.custom_model_worker -t coreoasis/custom_model_worker:
 
 # Start API
 docker-compose up -d
-
-# RUN OASIS UI
-GIT_UI=OasisUI
-if [[ -d ${SCRIPT_DIR}/${GIT_UI} ]]; then
-    cd ${SCRIPT_DIR}/${GIT_UI}
-    git fetch
-    git checkout ${UI_VER}
-else
-    git clone https://github.com/OasisLMF/${GIT_UI}.git -b ${UI_VER}
-fi 
-
-# Reset UI docker Tag
-cd ${SCRIPT_DIR}/${GIT_UI}
-git checkout -- docker-compose.yml
-sed -i 's|:latest|:${UI_VER}|g' docker-compose.yml
-cd ${SCRIPT_DIR}
-
-# Start UI
-echo "Setting up docker images and containers for Oasis UI"
-cp ${SCRIPT_DIR}/model_resource.json ${SCRIPT_DIR}/${GIT_UI}/model_resource.json
-docker network create shiny-net
-docker pull coreoasis/oasisui_app:${UI_VER}
-docker-compose -f ${SCRIPT_DIR}/${GIT_UI}/docker-compose.yml up -d

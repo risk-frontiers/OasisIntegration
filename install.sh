@@ -2,6 +2,14 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPT_DIR
 
+# Customize BATCH_COUNT in conf.ini
+    SCALE_FACTOR=20 # ideally between 10 and 20 and represents the consumption of memory by the RF .net engine
+    BATCH_COUNT=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${SCALE_FACTOR})
+    BATCH_COUNT=$([ ${BATCH_COUNT} -le 1 ] && echo 1 || echo ${BATCH_COUNT})
+    VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
+    BATCH_COUNT=$([ ${VCPU_COUNT} -le ${BATCH_COUNT} ] && echo ${VCPU_COUNT} || echo ${BATCH_COUNT})
+    sed -i '/KTOOLS_BATCH_COUNT/c\KTOOLS_BATCH_COUNT = '${BATCH_COUNT} conf.ini
+
 file_docker='docker/Dockerfile'
 file_versions='data_version.json'
 

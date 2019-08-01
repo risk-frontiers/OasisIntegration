@@ -1,6 +1,5 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export UI_VER='1.1.3'
 
 read -r -p "Are you sure you want to reset this deployment?
 Note that running this script on a shared deployment (i.e. an Oasis deployment including multiple
@@ -17,14 +16,7 @@ then
     docker rm -f oasis_celery_db
     docker rm -f oasis_rabbit
     docker rm -f oasis_flower
-
-    echo "Removing UI containers (UI version: ${UI_VER})"
-    docker rm -f $(docker ps -a -q --filter ancestor="coreoasis/oasisui_app:${UI_VER}")
-    docker rm -f $(docker ps -a -q --filter ancestor="coreoasis/oasisui_proxy:${UI_VER}")
-
-    #echo "Deleting networks"
-    #docker network rm oasis_default
-    #docker network rm shiny-net
+    docker rm -f oasis_user-interface_1
 
     echo "Pruning obsolete images and networks"
     docker system prune
