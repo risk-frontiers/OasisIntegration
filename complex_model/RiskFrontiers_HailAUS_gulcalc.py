@@ -13,6 +13,7 @@ from oasislmf.utils.exceptions import OasisException
 from complex_model.OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string, is_valid_model_data
 from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin
 from complex_model.Common import PerilSet
+from complex_model.RFException import FileNotFoundException
 from datetime import datetime
 import multiprocessing
 
@@ -143,6 +144,13 @@ def main():
         # populate RF exposure and coverage datatable
         num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_data)
 
+        # check RF license exists
+        licence_file = os.path.join(risk_platform_data, "license.txt")
+        if not os.path.isfile(licence_file):
+            licence_file = os.path.join(risk_platform_data, "licence.txt")
+            if not os.path.isfile(licence_file):
+                raise FileNotFoundException("License file not found at " + risk_platform_data, 410)
+
         # generate oasis_param.json
         complex_model_directory = DS.COMPLEX_MODEL_DIRECTORY
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
@@ -158,7 +166,7 @@ def main():
             "NumSamples": int(number_of_samples),
             "CountryCode": DS.COUNTRY_CODE,
             "ComplexModelDirectory": complex_model_directory,
-            "LicenseFile": os.path.join(risk_platform_data, "license.txt"),
+            "LicenseFile": licence_file,
             "RiskPlatformData": risk_platform_data,
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
