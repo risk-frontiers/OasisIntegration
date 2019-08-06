@@ -16,7 +16,9 @@ file_versions='data_version.json'
 
 cd ${SCRIPT_DIR}
 # Customize BATCH_COUNT in conf.ini
-SCALE_FACTOR=20 # ideally between 10 and 20 and represents the consumption of memory by the RF .net engine
+# Ideally between 10 and 20 which represents the memory consumption by each independent RF .net engine
+# OASIS financial engine is quite memory intensive so we simply reserve twice as much memory at the moment
+SCALE_FACTOR=40 # = 20 * 2
 BATCH_COUNT=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${SCALE_FACTOR})
 BATCH_COUNT=$([ ${BATCH_COUNT} -le 1 ] && echo 1 || echo ${BATCH_COUNT})
 VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
