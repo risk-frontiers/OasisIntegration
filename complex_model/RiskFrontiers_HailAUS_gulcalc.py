@@ -129,7 +129,8 @@ def main():
     with open(complex_items_fp) as p:
         items_pd = pd.read_csv(p)
     with TemporaryDirectory() as working_dir:
-        log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
+        # log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
+        log_filename = "worker.log"
         log_fp = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
         if _DEBUG:
             working_dir = "/tmp/oasis_debug"
