@@ -64,7 +64,7 @@ node {
             env.PIPELINE_LOAD =  script_dir + build_sh
 
             // TESTING VARS
-            env.TEST_MAX_RUNTIME = '190'
+            env.TEST_MAX_RUNTIME = '3600'
             env.TEST_DATA_DIR    = model_test_dir
             env.MODEL_SUPPLIER   = model_supplier
             env.MODEL_VARIENT    = model_varient
@@ -118,6 +118,26 @@ node {
                 }
             }
         }
+
+        if(params.PUBLISH){
+            // GIT TAG
+
+            // NOTE: tagging not working -> either change relationship (publish if tagged build) or fix here
+            //sshagent (credentials: [git_creds]) {
+            //    dir(model_workspace) {
+            //        sh PIPELINE + " git_tag ${env.TAG_RELEASE}"
+            //    }
+            //}
+
+            // DOCKER PUSH    
+            stage ("Publish: ${model_image}:${params.TAG_RELEASE}") {
+                dir(build_workspace) {
+                    sh PIPELINE + " push_image ${model_image}  ${params.TAG_RELEASE}"
+                }
+            }
+        }
+
+
     } catch(hudson.AbortException | org.jenkinsci.plugins.workflow.steps.FlowInterruptedException buildException) {
         hasFailed = true
         error('Build Failed')
@@ -141,14 +161,6 @@ node {
             SLACK_MSG += "\nMode: " + (params.PUBLISH ? 'Publish' : 'Build Test')
             SLACK_CHAN = (params.PUBLISH ? "#builds-release":"#builds-dev")
             slackSend(channel: SLACK_CHAN, message: SLACK_MSG, color: slackColor)
-        }
-        //Git tagging
-        if(! hasFailed && params.PUBLISH){
-            sshagent (credentials: [git_creds]) {
-                dir(model_workspace) {
-                    sh PIPELINE + " git_tag ${env.TAG_RELEASE}"
-                }
-            }
         }
         //Store logs
         dir(build_workspace) {

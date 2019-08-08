@@ -11,16 +11,12 @@ import complex_model.DefaultSettings as DS
 from backports.tempfile import TemporaryDirectory
 from oasislmf.utils.exceptions import OasisException
 from complex_model.OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string, is_valid_model_data
-from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin
+from complex_model.GulcalcToBin import gulcalc_sqlite_fp_to_bin
 from complex_model.Common import PerilSet
 from complex_model.RFException import FileNotFoundException
 from datetime import datetime
 import multiprocessing
 
-
-_DEBUG = False
-
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 PY3K = sys.version_info >= (3, 0)
 
@@ -36,11 +32,17 @@ else:
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
+_DEBUG = False
+_WORKER_LOG_FILE = "/var/log/oasis/worker.log"
+logging.basicConfig(level=logging.DEBUG if _DEBUG else logging.INFO,
+                    filename=_WORKER_LOG_FILE,
+                    format='[%(asctime)s: %(levelname)s/%(filename)s] %(message)s')
+
 
 def clean_directory(dir_path):
     import shutil
-    shutil.rmtree(dir_path)
-    import os
+    if os.path.exists(dir_path) and os.path.isdir(dir_path):
+        shutil.rmtree(dir_path)
     os.mkdir(dir_path)
 
 
@@ -128,29 +130,41 @@ def main():
 
     with open(complex_items_fp) as p:
         items_pd = pd.read_csv(p)
+
     with TemporaryDirectory() as working_dir:
-        # log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
-        log_filename = "worker.log"
+        log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
+        # log_filename = "worker.log"
         log_fp = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
         if _DEBUG:
-            working_dir = "/tmp/oasis_debug"
+            working_dir = "/tmp/oasis_debug_{}".format(event_batch)
             clean_directory(working_dir)
             log_fp = os.path.join(working_dir, log_filename)
+        logging.info("Working directory for worker with batch " + str(event_batch) + " is set to be " + working_dir)
+        logging.info("The process independent log file for this worker is " + log_filename)
+
         # Write out RF canonical input files
         risk_platform_data = os.path.join(DS.MODEL_DATA_DIRECTORY)
         if not is_valid_model_data(risk_platform_data):
-            raise FileNotFoundError("Model data not set correctly: " + risk_platform_data)
+            message = "Model data not set correctly: " + risk_platform_data
+            logging.error(message)
+            raise FileNotFoundException(message, 420)
         temp_db_fp = os.path.join(working_dir, DEFAULT_DB)
-
-        # populate RF exposure and coverage datatable
-        num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_data)
+        logging.info("RF model data file found in " + risk_platform_data)
 
         # check RF license exists
         licence_file = os.path.join(risk_platform_data, "license.txt")
         if not os.path.isfile(licence_file):
             licence_file = os.path.join(risk_platform_data, "licence.txt")
             if not os.path.isfile(licence_file):
-                raise FileNotFoundException("License file not found at " + risk_platform_data, 410)
+                message = "License file not found at " + risk_platform_data
+                logging.error(message)
+                raise FileNotFoundException(message, 410)
+        logging.info("License file found at " + licence_file)
+
+        # populate RF exposure and coverage datatable
+        logging.info("STARTED: Generating RF input database in " + temp_db_fp)
+        num_rows = create_rf_input(items_pd, coverages_pd, temp_db_fp, risk_platform_data)
+        logging.info("COMPLETED: RF input database generated in " + temp_db_fp + " [OK]")
 
         # generate oasis_param.json
         complex_model_directory = DS.COMPLEX_MODEL_DIRECTORY
@@ -186,6 +200,8 @@ def main():
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
         with open(oasis_param_fp, 'w') as param:
             param.writelines(json.dumps(oasis_param, indent=4, separators=(',', ': ')))
+            logging.debug("The Risk Frontiers .Net engine will be called with the following parameters")
+            logging.debug(json.dumps(oasis_param, indent=4, separators=(',', ':')))
 
         # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
         cmd_str = "{} --oasis -c {} {} --log {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
@@ -194,13 +210,21 @@ def main():
                                                         "--debug" if _DEBUG else "",
                                                         log_fp)
         try:
+            logging.info("STARTED: Calling Risk Frontiers .Net engine: " + cmd_str)
             subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
+            logging.info("COMPLETED: Loss database has been generated in " + temp_db_fp + "[OK]")
             if do_item_output:
-                gulcalc_sqlite_to_bin(temp_db_fp, output_item, int(number_of_samples), 1)
+                logging.info("STARTED: Transforming sqlite for event_batch " + str(event_batch) +
+                             " item losses into gulcalc item binary stream")
+                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_item, int(number_of_samples), 1)
             if do_coverage_output:
-                gulcalc_sqlite_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 2)
-
+                logging.info("STARTED: Transforming sqlite for event_batch " + str(event_batch) +
+                             " coverage losses into gulcalc coverage binary stream")
+                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 2)
+            logging.info("COMPLETED: Successfully generated losses as gulcalc binary stream for event batch " + str(event_batch))
         except subprocess.CalledProcessError as e:
+            logging.error("An error occurred while calling the Risk Frontiers .Net engine. Please look at " + log_fp +
+                          " for more information regarding this issue")
             raise OasisException(e)
 
 
