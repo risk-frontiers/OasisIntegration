@@ -17,7 +17,7 @@ sudo apt update && sudo apt install p7zip-full git docker docker-compose -y
 sudo usermod -aG docker $USER
 sudo su - $USER
 ```
-> Azure: you may need to perform the following in `/mnt` as we require at least 35GB of storage for the hazard and more for temporary storage (see the *oasis_integration.pdf* for more information about the hardware requirement and an example Azure specification). You can also work in a more persistent storage. In the following step, double check that `/mnt` has enough free space (e.g. `df -h /mnt`)
+> Azure: you may need to perform the following in `/mnt` as we require at least 35GB of storage for the hazard and a lot more for temporary storage (see the *oasis_integration.pdf* for more information about the hardware requirement and an example Azure specification). You can also work in a more persistent storage. In the following step, double check that `/mnt` has enough free space (e.g. `df -h /mnt`)
 3) Create working directory and clone the latest Oasis integration release
 ```
 sudo mkdir /mnt/oasis
