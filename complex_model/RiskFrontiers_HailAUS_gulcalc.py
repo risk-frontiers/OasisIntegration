@@ -32,7 +32,7 @@ else:
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
-_DEBUG = True
+_DEBUG = False
 _WORKER_LOG_FILE = "/var/log/oasis/worker.log"
 logging.basicConfig(level=logging.DEBUG if _DEBUG else logging.INFO,
                     filename=_WORKER_LOG_FILE,
