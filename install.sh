@@ -1,6 +1,6 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $SCRIPT_DIR
+cd ${SCRIPT_DIR}
 
 # Customize BATCH_COUNT in conf.ini
     SCALE_FACTOR=16 # ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
@@ -16,8 +16,8 @@ file_versions='data_version.json'
 # Read and set versions 
     env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER')
     for var_name in "${env_vars[@]}"; do
-            var_value=$(cat $file_versions | grep $var_name | awk -F'"' '{ print $4 }')
-        export $var_name=$var_value
+            var_value=$(cat ${file_versions} | grep ${var_name} | awk -F'"' '{ print $4 }')
+        export ${var_name}=${var_value}
     done
 
 # verify model data and license
@@ -55,7 +55,7 @@ if [[ -d ${MODEL_DATA} ]]
 else
     echo "WARNING: Directory model_data missing. This installation will not work properly without the data folder."
 fi
-
+cd ${SCRIPT_DIR}
 
 # Arg check 
     if [ $# -eq 0 ]; then
@@ -64,7 +64,7 @@ fi
         echo "Example:  ./install.sh /Oasis/us-eq/model_data/"
         exit 1
     fi
-    export MODEL_DATA_ROOT=$1/$DATA_VER
+    export MODEL_DATA_ROOT=$1/${DATA_VER}
 
 
 # Run API, UI & Worker
