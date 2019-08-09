@@ -3,7 +3,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPT_DIR
 
 # Customize BATCH_COUNT in conf.ini
-    SCALE_FACTOR=16 # ideally between 10 and 20 and represents the consumption of memory by the RF .net engine
+    SCALE_FACTOR=16 # ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
     BATCH_COUNT=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${SCALE_FACTOR})
     BATCH_COUNT=$([ ${BATCH_COUNT} -le 1 ] && echo 1 || echo ${BATCH_COUNT})
     VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
@@ -19,6 +19,43 @@ file_versions='data_version.json'
             var_value=$(cat $file_versions | grep $var_name | awk -F'"' '{ print $4 }')
         export $var_name=$var_value
     done
+
+# verify model data and license
+MODEL_DATA=${SCRIPT_DIR}/"model_data"
+if [[ -d ${MODEL_DATA} ]]
+    then cd ${MODEL_DATA}
+    if [[ ! -f "license.txt" ]] && [[ ! -f "licence.txt" ]]
+        then echo "License file missing. Please copy your Risk Frontiers license file in the model_data folder."
+        exit 1
+    fi
+
+    if [[ ! -f "events.bin" ]]
+        then echo "This is not a valid model data directory: events.bin missing"
+        exit 1
+    fi
+
+    if [[ ! -f "events_p.bin" ]]
+        then echo "Creating events_p.bin"
+        ln -s events.bin events_p.bin
+    fi
+    if [[ ! -f "events_h.bin" ]]
+        then echo "Creating events_h.bin"
+        ln -s events.bin events_h.bin
+    fi
+
+    if [[ ! -f "occurrence.bin" ]]
+        then echo "This is not a valid model data directory: occurrence.bin missing"
+        exit 1
+    fi
+
+    if [[ ! -f "occurrence_1.bin" ]]
+        then echo "Creating occurrence_1.bin"
+        ln -s occurrence.bin occurrence_1.bin
+    fi
+else
+    echo "WARNING: Directory model_data missing. This installation will not work properly without the data folder."
+fi
+
 
 # Arg check 
     if [ $# -eq 0 ]; then

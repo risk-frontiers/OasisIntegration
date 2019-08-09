@@ -32,7 +32,7 @@ else:
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
-_DEBUG = False
+_DEBUG = True
 _WORKER_LOG_FILE = "/var/log/oasis/worker.log"
 logging.basicConfig(level=logging.DEBUG if _DEBUG else logging.INFO,
                     filename=_WORKER_LOG_FILE,
@@ -210,18 +210,21 @@ def main():
                                                         "--debug" if _DEBUG else "",
                                                         log_fp)
         try:
-            logging.info("STARTED: Calling Risk Frontiers .Net engine: " + cmd_str)
+            logging.info("STARTED: Calling Risk Frontiers .Net engine: " + cmd_str + " for event batch "
+                         + str(event_batch))
             subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
-            logging.info("COMPLETED: Loss database has been generated in " + temp_db_fp + "[OK]")
+            logging.info("COMPLETED: Loss database has been generated in " + temp_db_fp + " for event batch "
+                         + str(event_batch))
             if do_item_output:
-                logging.info("STARTED: Transforming sqlite for event_batch " + str(event_batch) +
-                             " item losses into gulcalc item binary stream")
+                logging.info("STARTED: Transforming sqlite losses into gulcalc item binary stream for event_batch "
+                             + str(event_batch))
                 gulcalc_sqlite_fp_to_bin(temp_db_fp, output_item, int(number_of_samples), 1)
             if do_coverage_output:
-                logging.info("STARTED: Transforming sqlite for event_batch " + str(event_batch) +
-                             " coverage losses into gulcalc coverage binary stream")
+                logging.info("STARTED: Transforming sqlite losses into gulcalc coverage binary stream for event_batch "
+                             + str(event_batch))
                 gulcalc_sqlite_fp_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 2)
-            logging.info("COMPLETED: Successfully generated losses as gulcalc binary stream for event batch " + str(event_batch))
+            logging.info("COMPLETED: Successfully generated losses as gulcalc binary stream for event batch "
+                         + str(event_batch))
         except subprocess.CalledProcessError as e:
             logging.error("An error occurred while calling the Risk Frontiers .Net engine. Please look at " + log_fp +
                           " for more information regarding this issue")
