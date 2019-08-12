@@ -7,6 +7,12 @@ class RFBaseException(Exception):
         self.error_code = code
 
 
+class LocationLookupWarning(RFBaseException):
+    def __init__(self, message, error_code=100):
+        super(LocationLookupException, self).__init__(message, error_code)
+        self.generated_uni_exposure = None
+
+
 class LocationLookupException(RFBaseException):
     def __init__(self, message, error_code=100):
         super(LocationLookupException, self).__init__(message, error_code)

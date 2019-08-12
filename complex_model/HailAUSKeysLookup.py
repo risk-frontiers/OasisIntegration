@@ -38,13 +38,14 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         """This transforms the occupancy error_code into Multi-Peril Workbench specified line of business"""
         try:
             if 'occupancycode' not in record:
-                return 1  # residential: this is the default behaviour when this field is missing in the workbench
+                # residential: this is the default behaviour when this field is missing in the workbench
+                return EnumLineOfBusiness.Residential.value
             if record['occupancycode'] == 1000 or 1050 <= record['occupancycode'] <= 1099:
-                return 1  # residential
+                return EnumLineOfBusiness.Residential.value  # residential
             elif 1100 <= record['occupancycode'] <= 1149 or 1200 <= record['occupancycode'] <= 1249:
-                return 2  # commercial
+                return EnumLineOfBusiness.Commercial.value  # commercial
             elif 1150 <= record['occupancycode'] <= 1199:
-                return 3  # industrial
+                return EnumLineOfBusiness.Industrial.value  # industrial
             else:
                 raise LocationLookupException("Unsupported occupancy code " + str(record['occupancycode']),
                                               error_code=123)
@@ -60,7 +61,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         except KeyError or TypeError:
             return False
 
-    def _validate(self, uni_exposure):
+    def _validate(self, uni_exposure, loc):
         """This validates the uni_exposure as per the Multi-Peril Workbench specification
                 1. we ignore a location that has no postcode if the peril is Hail
                 2. we ignore location that has not geographical specification (address, lat/lon, cresta, ica_zone)
@@ -68,10 +69,23 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :param uni_exposure:
         :return: validated uni_exposure
         """
+        # incomplete or missing geo-location field should fail
         if not ((uni_exposure['latitude'] and uni_exposure['longitude']) or uni_exposure['address_id'] or
                 uni_exposure['med_id'] or uni_exposure['zone_id'] or uni_exposure['lrg_id']):
             raise LocationLookupException("A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon "
                                           "or address coordinate", error_code=110)
+
+        # Residential with BI coverage should fail
+        if (uni_exposure['lob_id'] == EnumLineOfBusiness.Residential.value and
+                uni_exposure['cover_id'] == EnumCover.BI.value):
+            raise LocationLookupException("Business Interruption losses are not currently modelled for Residential "
+                                          "line of business", error_code=151)
+
+        # Motor construction code but cover is not Motor should fail
+        if self._is_motor(loc) and uni_exposure['cover_id'] in (EnumCover.Building.value, EnumCover.Contents.value,
+           EnumCover.BI.value):
+            raise LocationLookupException("If row has a motor construction code (between 5850 and 5950 then it cannot "
+                                          "have cover other than Motor (TIV stored in OtherTIV)", error_code=152)
 
         return uni_exposure
 
@@ -130,6 +144,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
         if uni_exposure['cover_id'] == EnumCover.Motor.value and not self._is_motor(loc):
+            # this case is where OtherTIV means IV for appurtenant structures
             uni_exposure['cover_id'] = EnumCover.Building.value
 
         # OASIS: loc_id is uniquely generated for each location by oasis
@@ -219,7 +234,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
         # uni_exposure['modelled'] # todo: when implementing flood, check that location is in flood zone
 
-        return self._validate(uni_exposure)
+        return self._validate(uni_exposure, loc)
 
     def process_location(self, loc, coverage_type):
         try:

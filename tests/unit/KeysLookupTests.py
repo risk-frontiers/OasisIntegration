@@ -9,9 +9,11 @@ from complex_model import HailAUSKeysLookup
 from complex_model.Common import *
 from tests.unit.RFBaseTest import RFBaseTestCase
 
+
 ALL_COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["other"], COVERAGE_TYPES["bi"]]
 NON_MOTOR_COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["bi"]]
 NON_BI_COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["other"]]
+BUILDING_CONTENTS = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"]]
 DEFAULT_OCCUPANCY_CODE = {"Residential": 1050, "Commercial": 1100, "Industrial": 1150}
 
 ALL_COVERAGES_ALL_OCCUPANCY = [[coverage, oc] for coverage, oc
@@ -20,12 +22,23 @@ ALL_COVERAGES_ALL_OCCUPANCY = [[coverage, oc] for coverage, oc
 ALL_COVERAGES_COMMERCIAL_INDUSTRIAL = [[coverage, oc] for coverage, oc
                                        in itertools.product(ALL_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Commercial"],
                                                                             DEFAULT_OCCUPANCY_CODE["Industrial"]])]
-NON_MOTOR_COVERAGES_RESIDENTIAL = [[coverage, oc] for coverage, oc
-                                   in itertools.product(NON_BI_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Residential"]])]
+NON_BI_COVERAGES_RESIDENTIAL = [[coverage, oc] for coverage, oc
+                                in itertools.product(NON_BI_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Residential"]])]
 
-OK_COVERAGES_OCCUPANCY_COMBINATION = ALL_COVERAGES_COMMERCIAL_INDUSTRIAL + NON_MOTOR_COVERAGES_RESIDENTIAL
+OK_COVERAGES_OCCUPANCY_COMBINATION = ALL_COVERAGES_COMMERCIAL_INDUSTRIAL + NON_BI_COVERAGES_RESIDENTIAL
 
 FAIL_COVERAGES_OCCUPANCY_COMBINATION = [[COVERAGE_TYPES["bi"], DEFAULT_OCCUPANCY_CODE["Residential"]]]
+
+NON_MOTOR_COMMERCIAL_INDUSTRIAL = [[coverage, oc] for coverage, oc
+                                   in itertools.product(NON_MOTOR_COVERAGES,
+                                                        [DEFAULT_OCCUPANCY_CODE["Commercial"],
+                                                         DEFAULT_OCCUPANCY_CODE["Industrial"]])]
+
+BUILDING_CONTENTS_RESIDENTIAL = [[coverage, oc] for coverage, oc
+                                 in itertools.product(BUILDING_CONTENTS,
+                                                      [DEFAULT_OCCUPANCY_CODE["Residential"]])]
+
+OK_NON_MOTOR_COVERAGES_OCCUPANCY_COMBINATION = NON_MOTOR_COMMERCIAL_INDUSTRIAL + BUILDING_CONTENTS_RESIDENTIAL
 
 
 class OccupancyCodeTests(RFBaseTestCase):
@@ -65,8 +78,8 @@ class MotorExposureTests(RFBaseTestCase):
     def test_is_motor_true(self, cc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                   'latitude': -33.8688, 'longitude': 151.2093,
-                   'postalcode': 2000, 'constructioncode': cc}
+               'latitude': -33.8688, 'longitude': 151.2093,
+               'postalcode': 2000, 'constructioncode': cc}
         self.assertTrue(lookup._is_motor(loc))
 
     def test_is_motor_false(self):
@@ -935,7 +948,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
         self.assertEqual(EnumCover.Motor.value, exposure['cover_id'])
 
-    def test_motor_exposure_building(self):
+    def test_motor_exposure_no_oc_motor(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'postalcode': 2000}
@@ -944,12 +957,14 @@ class CreateUniExposureTests(RFBaseTestCase):
         exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
         self.assertEqual(EnumCover.Building.value, exposure['cover_id'])
 
-    def test_motor_exposure_with_ignore_building_tiv(self):
+    @parameterized.expand([[coverage_oc[0], cc, coverage_oc[1]] for cc, coverage_oc in
+                           itertools.product(range(5850, 5950), OK_NON_MOTOR_COVERAGES_OCCUPANCY_COMBINATION)])
+    def test_motor_exposure_building_oc_motor(self, coverage, cc, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="HailAus")
-        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1, 'postalcode': 2000}
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1, 'postalcode': 2000,
+                       'constructioncode': cc, 'occupancycode': oc}
         loc = copy.deepcopy(default_loc)
-        exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
-        print(exposure)
+        self.assertRaisesWithErrorCode(152, lookup.create_uni_exposure, loc, coverage["id"])
 
 
 if __name__ == '__main__':

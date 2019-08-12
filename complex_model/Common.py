@@ -171,3 +171,10 @@ def oed_to_rf_coverage(oed_cover):
         return EnumCover.Contents.value  # Contents
     if oed_cover == 4:
         return EnumCover.BI.value  # Business Interruption
+
+
+class EnumLineOfBusiness(Enum):
+    All = 0
+    Residential = 1
+    Commercial = 2
+    Industrial = 3
