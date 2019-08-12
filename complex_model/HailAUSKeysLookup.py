@@ -178,7 +178,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                 pass
 
         # overwrite postcode from 'postalcode' field
-        if 'postalcode' in loc and isinstance(loc['postalcode'], numbers.Number):
+        if 'postalcode' in loc and isinstance(loc['postalcode'], numbers.Number) and not math.isnan(loc['postalcode']):
             uni_exposure['med_id'] = int(loc['postalcode'])
             uni_exposure['med_type'] = EnumResolution.Postcode.value
 
