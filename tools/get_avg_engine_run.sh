@@ -5,7 +5,7 @@ count=0
 sum=0
 max=0
 min=10000
-for i in $(cat worker_*_${timestamp:1}*.log | grep "Calculation completed in" | awk -F '[::]' '{print$5}')
+for i in $(cat worker_*_${timestamp:1}*.log | grep "Calculation completed in" | awk -F '[::]' '{print $4 * 60 + $5}')
 do
     sum=`expr ${i} + ${sum}`
     count=`expr ${count} + 1`
