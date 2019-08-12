@@ -59,6 +59,21 @@ def gulcalc_sqlite_fp_to_bin(db_fp, output, num_sample, stream_type=1):
     con.close()
 
 
+def cursor_iterator(cursor, batchsize=100000):
+    """An iterator that uses fetchmany to keep memory usage down
+
+    :param cursor: a sqlite db cursor
+    :param batchsize: size of the batch to be fetched
+    :return: a generator constructed from fetchmany
+    """
+    while True:
+        results = cursor.fetchmany(batchsize)
+        if not results:
+            break
+        for result in results:
+            yield result
+
+
 def gulcalc_sqlite_to_bin(con, output, num_sample, stream_type=1):
     """This transforms a sqlite result table (rf format) into oasis loss binary stream
 
@@ -80,9 +95,8 @@ def gulcalc_sqlite_to_bin(con, output, num_sample, stream_type=1):
     output.write(struct.pack('i', stream_id))
     output.write(struct.pack('i', num_sample))
 
-    rows = cur.fetchall()
     last_key = (0, 0)
-    for row in rows:
+    for row in cursor_iterator(cur):
         current_key = (int(row[0]), int(row[1]))
         if not last_key == current_key:
             if not last_key == (0, 0):

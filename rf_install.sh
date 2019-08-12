@@ -1,76 +1,149 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-MODEL_DATA=${SCRIPT_DIR}/"model_data"
+cd ${SCRIPT_DIR}
 
-export OASIS_VER='1.2.0'
-export OASIS_UI_VER='1.2.0'
+GLOBAL_LICENCE_PATH=""
+
+function compute_batch_count()
+{
+    scale_factor=$1
+    batch_count=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${scale_factor})
+    echo ${batch_count}
+    batch_count=$([ ${batch_count} -le 1 ] && echo 1 || echo ${batch_count})
+    VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
+    batch_count=$([ ${VCPU_COUNT} -le ${batch_count} ] && echo ${VCPU_COUNT} || echo ${batch_count})
+    return ${batch_count}
+}
+
+
+function valid_licence()
+{
+    if [[ -f $1 ]]
+    then
+        return 0 # success
+    else
+        return 1 # failure
+    fi
+}
+
+function set_new_licence()
+{
+    read -p "Please set path to the Risk Frontiers licence file [$1]: " licence_path_in
+    if [[ ! -f ${licence_path_in} ]]
+    then
+        echo "Licence file not found in ${licence_path_in}. Exiting now!"
+        exit 1
+    fi
+    GLOBAL_LICENCE_PATH=${licence_path_in}
+}
+
 
 file_docker='docker/Dockerfile'
 file_versions='data_version.json'
+
 # Read and set versions
-    env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER')
-    for var_name in "${env_vars[@]}"; do
-            var_value=$(cat $file_versions | grep $var_name | awk -F'"' '{ print $4 }')
-        export $var_name=$var_value
-    done
+env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER')
+for var_name in "${env_vars[@]}"; do
+        var_value=$(cat ${file_versions} | grep ${var_name} | awk -F'"' '{ print $4 }')
+    export ${var_name}=${var_value}
+done
 
-cd ${SCRIPT_DIR}
-# Customize BATCH_COUNT in conf.ini
-# Ideally between 10 and 20 which represents the memory consumption by each independent RF .net engine
-# OASIS financial engine is quite memory intensive so we simply reserve twice as much memory at the moment
-SCALE_FACTOR=40 # = 20 * 2
-BATCH_COUNT=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${SCALE_FACTOR})
-BATCH_COUNT=$([ ${BATCH_COUNT} -le 1 ] && echo 1 || echo ${BATCH_COUNT})
-VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
-BATCH_COUNT=$([ ${VCPU_COUNT} -le ${BATCH_COUNT} ] && echo ${VCPU_COUNT} || echo ${BATCH_COUNT})
-sed -i '/KTOOLS_BATCH_COUNT/c\KTOOLS_BATCH_COUNT = '${BATCH_COUNT} conf.ini
+# set installation user
+current_user=${USER}
+read -p "Please confirm the installation will be done by user ${current_user} (NEED SUDO) [Y/N]: " confirm_user
+echo "Installation started. Please follow the following instruction and press ENTER to use the suggested default values"
 
-# verify model data
-if [[ -d ${MODEL_DATA} ]]
-    then cd ${MODEL_DATA}
-    if [[ ! -f "license.txt" ]] && [[ ! -f "licence.txt" ]]
-        then echo "License file missing. Please copy your Risk Frontiers license file in the model_data folder."
+if [[ ${confirm_user} = "Y" ]] || [[ ${confirm_user} = "y" ]]
+then
+    cd ${SCRIPT_DIR}
+
+    # Customize BATCH_COUNT in conf.ini
+    # SCALE_FACTOR is ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
+    MIN_SCALE_FACTOR=10
+    MAX_SCALE_FACTOR=20
+    min_batch_count=$(compute_batch_count ${MAX_SCALE_FACTOR})
+    max_batch_count=$(compute_batch_count ${MIN_SCALE_FACTOR})
+
+    batch_count=${min_batch_count}
+    read -p "Please set KTOOLS_BATCH_COUNT (ideally between ${min_batch_count} and ${max_batch_count}) [${batch_count}]: " batch_count_in
+    re='^[0-9]+$'
+    if [[ ! -z ${batch_count_in} ]] && [[ ${batch_count_in} =~ $re ]]
+    then
+        batch_count=${batch_count_in}
+    fi
+    sed -i '/KTOOLS_BATCH_COUNT/c\KTOOLS_BATCH_COUNT = '${batch_count} conf.ini
+    echo "Updated 'KTOOLS_BATCH_COUNT' in conf.ini to ${batch_count}"
+
+    # set model data path
+    model_data=${SCRIPT_DIR}/"model_data"
+    read -p "Please enter the place where model data was downloaded (ABSOLUTE PATH) [${model_data}]: " model_data_in
+    if [[ ! -z ${model_data_in} ]]
+    then
+        model_data=${model_data_in}/${DATA_VER}
+    fi
+    export MODEL_DATA_ROOT=${model_data}
+
+    # verify model data and licence
+    if [[ -d ${model_data} ]]
+        then cd ${model_data}
+
+        # shallow verify licence
+        licence_path=${model_data}/licence.txt
+        if [[ ! -f license.txt ]] && [[ ! -f licence.txt ]]
+        then
+            set_new_licence ${licence_path}
+            licence_path=${GLOBAL_LICENCE_PATH}
+        else
+            licence_path=$([ -f ${model_data}/licence.txt ] && echo ${model_data}/licence.txt || echo ${model_data}/license.txt)
+            read -p "Licence file exists in ${licence_path}. Do you want to use it? [Y]: " confirm_licence
+            if [[ ! ${confirm_licence} = "Y" ]] && [[ ! ${confirm_licence} = "y" ]]
+            then
+                 set_new_licence ${licence_path}
+                 licence_path=${GLOBAL_LICENCE_PATH}
+            fi
+        fi
+        if  ! valid_licence ${licence_path}
+        then
+            echo "Licence file is invalid. Exiting now!"
+            exit 1
+        fi
+
+        cp ${licence_path} /tmp/licence.txt; cp /tmp/licence.txt ${model_data}
+        echo "Licence file installed in ${model_data}"
+
+        # shallow verify model_data
+        if [[ ! -f "events.bin" ]]
+            then echo "This is not a valid model data directory: events.bin missing"
+            exit 1
+        fi
+
+        if [[ ! -f "events_p.bin" ]]
+            then echo "Creating events_p.bin"
+            ln -s events.bin events_p.bin
+        fi
+        if [[ ! -f "events_h.bin" ]]
+            then echo "Creating events_h.bin"
+            ln -s events.bin events_h.bin
+        fi
+
+        if [[ ! -f "occurrence.bin" ]]
+            then echo "This is not a valid model data directory: occurrence.bin missing"
+            exit 1
+        fi
+
+        if [[ ! -f "occurrence_1.bin" ]]
+            then echo "Creating occurrence_1.bin"
+            ln -s occurrence.bin occurrence_1.bin
+        fi
+    else
+        echo "The model data '${model_data}' does not exist"
         exit 1
     fi
 
-    if [[ ! -f "events.bin" ]]
-        then echo "This is not a valid model data directory: events.bin missing"
-        exit 1
-    fi
-
-    if [[ ! -f "events_p.bin" ]]
-        then echo "Creating events_p.bin"
-        ln -s events.bin events_p.bin
-    fi
-    if [[ ! -f "events_h.bin" ]]
-        then echo "Creating events_h.bin"
-        ln -s events.bin events_h.bin
-    fi
-
-    if [[ ! -f "occurrence.bin" ]]
-        then echo "This is not a valid model data directory: occurrence.bin missing"
-        exit 1
-    fi
-
-    if [[ ! -f "occurrence_1.bin" ]]
-        then echo "Creating occurrence_1.bin"
-        ln -s occurrence.bin occurrence_1.bin
-    fi
+    cd ${SCRIPT_DIR}
+    # Run API, UI & Worker
+    docker-compose -f docker-compose.yml --project-directory ${SCRIPT_DIR} up -d --build
 else
-    echo "WARNING: Directory model_data missing. This installation will not work properly without the data folder."
+    echo "Please switch user using 'sudo su - <username>' and restart the installation.
+Make sure that this <username> has the necessary file permission and privilege."
 fi
-
-# SETUP and RUN complex
-echo "Setting up docker images and containers for Oasis worker and API"
-cd ${SCRIPT_DIR}
-#git checkout -- docker-compose.yml
-sed -i 's|:latest|:${OASIS_VER}|g' docker-compose.yml
-
-# reset and build custom worker
-#git checkout -- Dockerfile.custom_model_worker
-sed -i "s|:latest|:${OASIS_VER}|g" Dockerfile.custom_model_worker
-docker pull coreoasis/model_worker:${OASIS_VER}
-docker build -f Dockerfile.custom_model_worker -t coreoasis/custom_model_worker:${OASIS_VER} .
-
-# Start API
-docker-compose up -d
