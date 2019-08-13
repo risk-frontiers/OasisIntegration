@@ -50,7 +50,7 @@ OasisIntegration/
 ├── tasks.py
 └── tests
 ```
-7) Run the deployment script and follow the instructions. You will be ask to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and licence file.
+7) Run the deployment script and follow the instructions. You will be asked to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and licence file.
 ```
 chmod +x install.sh
 ./install.sh
@@ -62,14 +62,6 @@ chmod +x install.sh
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*
 > Azure: you will also need to add an inbound firewall rule for port 8000 if you need direct access to the Oasis API
 
-9) Sometimes, when an exception is encountered in the Oasis UI then the containers have to be recreated for the deployed oasis framework 
-to work as expected again. We have provided a script that deletes the containers and data for the deployment. 
-```
-chmod +x reset.sh
-./reset.sh
-``` 
-> Note that running this script on a shared deployment (i.e. an Oasis deployment including multiple models from the same 
-or different vendors) is **VERY DANGEROUS**. Please use this for technical testing of Risk Frontiers integration only. Once the Oasis UI is stable enough, this script will be removed.
 10) To update the framework, do
 ```
 git pull
