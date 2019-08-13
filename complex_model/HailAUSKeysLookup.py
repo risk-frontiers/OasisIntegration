@@ -84,7 +84,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # Motor construction code but cover is not Motor should fail
         if self._is_motor(loc) and uni_exposure['cover_id'] in (EnumCover.Building.value, EnumCover.Contents.value,
            EnumCover.BI.value):
-            raise LocationLookupException("If row has a motor construction code (between 5850 and 5950 then it cannot "
+            raise LocationLookupException("If row has a motor construction code (between 5850 and 5950) then it cannot "
                                           "have cover other than Motor (TIV stored in OtherTIV)", error_code=152)
 
         return uni_exposure
