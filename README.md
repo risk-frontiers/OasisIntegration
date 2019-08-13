@@ -62,7 +62,7 @@ chmod +x install.sh
 ```
 >You will be asked to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and license file.
 8) Access via the accessible IP (Public IP for Azure) using the default `user: admin` `pass: password` 
-* [OasisUI Interface](http://localhost:8080/) - *localhost:8080/app/BFE_RShiny* 
+* [OasisUI Interface](http://localhost:8080/) - *localhost:8080* 
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000* 
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*
 > Azure: you will also need to add an inbound firewall rule for port 8000 if you need direct access to the Oasis API
