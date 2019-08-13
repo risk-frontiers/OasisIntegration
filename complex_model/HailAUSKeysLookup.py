@@ -1,18 +1,16 @@
 import itertools
 import json
+import numbers
+import math
 
-import oasislmf.utils.coverage
-from oasislmf.utils.metadata import (
-    OASIS_KEYS_SC,
-    OASIS_KEYS_FL,
-    OASIS_KEYS_NM,
-    OASIS_KEYS_STATUS)
+from oasislmf.utils.coverages import COVERAGE_TYPES
+from oasislmf.utils.status import OASIS_KEYS_STATUS
 from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
+
 from complex_model.PostcodeLookup import PostcodeLookup
-from complex_model.RFException import LocationLookupException
+from complex_model.RFException import LocationLookupException, LocationNotModelledException
 from complex_model.Common import *
 from complex_model.DefaultSettings import COUNTRY_CODE
-import numbers
 
 
 class HailAUSKeysLookup(OasisBaseKeysLookup):
@@ -20,33 +18,50 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                  keys_data_directory=None,
                  supplier=None,
                  model_name=None,
-                 model_version=None):
+                 model_version=None,
+                 complex_lookup_config_fp=None,
+                 output_directory=None):
         self.keys_file_dir = keys_data_directory
         self._coverage_types = [
-            oasislmf.utils.coverage.BUILDING_COVERAGE_CODE,  # 1
-            oasislmf.utils.coverage.CONTENTS_COVERAGE_CODE,  #
-            oasislmf.utils.coverage.TIME_COVERAGE_CODE,
-            oasislmf.utils.coverage.OTHER_STRUCTURES_COVERAGE_CODE]
+                COVERAGE_TYPES['buildings']['id'],  # 1, building
+                COVERAGE_TYPES['contents']['id'],  # 3, contents
+                COVERAGE_TYPES['bi']['id'],  # 4, bi
+                COVERAGE_TYPES['other']['id']]  # 2, other/motor]
         self._peril_id = None
         if model_name is not None and model_name.lower() in PerilSet.keys():
             self._peril_id = PerilSet[model_name.lower()]['OED_ID']
+        self._postcode_lookup = None
         if self.keys_file_dir:
             self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
 
     def _get_lob_id(self, record):
-        """This transforms the occupancy code into Multi-Peril Workbench specified line of business"""
-        if 'occupancycode' not in record:
-            return 1  # residential: this is the default behaviour when this field is missing in the workbench
-        if record['occupancycode'] == 1000 or 1050 <= record['occupancycode'] <= 1099:
-            return 1  # residential
-        elif 1100 <= record['occupancycode'] <= 1149:
-            return 2  # commercial
-        elif 1150 <= record['occupancycode'] <= 1199:
-            return 3  # industrial
-        else:
-            raise LocationLookupException("Unsupported occupancy code " + str(record['occupancycode']))
+        """This transforms the occupancy error_code into Multi-Peril Workbench specified line of business"""
+        try:
+            if 'occupancycode' not in record:
+                # residential: this is the default behaviour when this field is missing in the workbench
+                return EnumLineOfBusiness.Residential.value
+            if record['occupancycode'] == 1000 or 1050 <= record['occupancycode'] <= 1099:
+                return EnumLineOfBusiness.Residential.value  # residential
+            elif 1100 <= record['occupancycode'] <= 1149 or 1200 <= record['occupancycode'] <= 1249:
+                return EnumLineOfBusiness.Commercial.value  # commercial
+            elif 1150 <= record['occupancycode'] <= 1199:
+                return EnumLineOfBusiness.Industrial.value  # industrial
+            else:
+                raise LocationLookupException("Unsupported occupancy code " + str(record['occupancycode']),
+                                              error_code=123)
+        except TypeError:
+            raise LocationLookupException("Badly formatted occupancy code " + str(record['occupancycode']),
+                                          error_code=124)
 
-    def _validate(self, uni_exposure):
+    def _is_motor(self, record):
+        try:
+            if 5850 <= record['constructioncode'] < 5950:
+                return True
+            return False
+        except KeyError or TypeError:
+            return False
+
+    def _validate(self, uni_exposure, loc):
         """This validates the uni_exposure as per the Multi-Peril Workbench specification
                 1. we ignore a location that has no postcode if the peril is Hail
                 2. we ignore location that has not geographical specification (address, lat/lon, cresta, ica_zone)
@@ -54,10 +69,23 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :param uni_exposure:
         :return: validated uni_exposure
         """
+        # incomplete or missing geo-location field should fail
         if not ((uni_exposure['latitude'] and uni_exposure['longitude']) or uni_exposure['address_id'] or
                 uni_exposure['med_id'] or uni_exposure['zone_id'] or uni_exposure['lrg_id']):
             raise LocationLookupException("A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon "
-                                          "or address coordinate")
+                                          "or address coordinate", error_code=110)
+
+        # Residential with BI coverage should fail
+        if (uni_exposure['lob_id'] == EnumLineOfBusiness.Residential.value and
+                uni_exposure['cover_id'] == EnumCover.BI.value):
+            raise LocationLookupException("Business Interruption losses are not currently modelled for Residential "
+                                          "line of business", error_code=151)
+
+        # Motor construction code but cover is not Motor should fail
+        if self._is_motor(loc) and uni_exposure['cover_id'] in (EnumCover.Building.value, EnumCover.Contents.value,
+           EnumCover.BI.value):
+            raise LocationLookupException("If row has a motor construction code (between 5850 and 5950) then it cannot "
+                                          "have cover other than Motor (TIV stored in OtherTIV)", error_code=152)
 
         return uni_exposure
 
@@ -69,17 +97,25 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :param geog_name: valid RF supported region value
         :return: the uni exposure object where the respective geo-location has been set
         """
-        if geog_scheme == "XGNAF" and type(geog_name) == str:  # GNAF address
+        # GNAF address
+        if geog_scheme == "GNAF" and type(geog_name) == str:
             uni_exposure["address_id"] = geog_name
             uni_exposure['address_type'] = EnumResolution.Address.value
 
-        if geog_scheme == "CRL" or geog_scheme == "CRH" and isinstance(geog_name, numbers.Number) and geog_name > 0:  # ica zone
+        # ica zone
+        if geog_scheme == "ICA" and isinstance(geog_name, numbers.Number) and 0 < geog_name < 50:
             uni_exposure["lrg_id"] = int(geog_name)
             uni_exposure['lrg_type'] = EnumResolution.IcaZone.value
 
-        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and geog_name > 0:  # cresta
+        # cresta
+        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and 0 < geog_name < 50:
             uni_exposure["zone_id"] = int(geog_name)
             uni_exposure['zone_type'] = EnumResolution.Cresta.value
+
+        # postcode
+        if geog_scheme == "PC4" and isinstance(geog_name, numbers.Number) and 0 < geog_name:
+            uni_exposure['med_id'] = int(geog_name)
+            uni_exposure['med_type'] = EnumResolution.Postcode.value
 
         return uni_exposure
 
@@ -97,22 +133,27 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         """
 
         # OED: locperilscovered is required
-        peril_covered = int(loc['locperilscovered']) \
-            if 'locperilscovered' in loc and loc['locperilscovered'] is not None else 0  # todo: check that this is ok
-        if peril_covered > 0 and not self._peril_id & peril_covered > 0:
-            raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)))
+        if 'locperilscovered' not in loc or loc['locperilscovered'] is None:
+            raise LocationLookupException('LocPerilsCovered is required', error_code=101)
+        loc_peril_covered_ids = get_covered_ids(loc['locperilscovered'])
+        if self._peril_id not in loc_peril_covered_ids:
+            raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)),
+                                          error_code=122)
 
         uni_exposure = dict()
-        # uni_exposure['origin_file_line'] = int(loc['locnumber'])
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
+        if uni_exposure['cover_id'] == EnumCover.Motor.value and not self._is_motor(loc):
+            # this case is where OtherTIV means IV for appurtenant structures
+            uni_exposure['cover_id'] = EnumCover.Building.value
 
-        # OED: locnumber is required
-        if 'locnumber' not in loc or loc['locnumber'] is None:
-            raise LocationLookupException("Location Number is required but is missing or null in the OED file")
-        uni_exposure['loc_id'] = str(loc['locnumber'])
+        # OASIS: loc_id is uniquely generated for each location by oasis
+        if 'loc_id' not in loc or loc['loc_id'] is None:
+            raise LocationLookupException("Location ID is required but is missing",
+                                          error_code=102)
+        uni_exposure['loc_id'] = str(loc['loc_id'])
 
-        # OED: country code is also required but we'll default to AU is missing
+        # OED: country error_code is also required but we'll default to AU if missing
         try:
             uni_exposure['country_code'] = str(loc["countrycode"]).lower()
         except (ValueError, KeyError):
@@ -121,6 +162,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # address, ICA zone and cresta
         uni_exposure['address_id'] = None
         uni_exposure['address_type'] = None
+        uni_exposure['med_id'] = None
+        uni_exposure['med_type'] = None
         uni_exposure['lrg_id'] = None
         uni_exposure['lrg_type'] = None
         uni_exposure['zone_id'] = None
@@ -134,29 +177,28 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             except (ValueError, TypeError):
                 pass
 
-        # postcode
-        try:
-            uni_exposure['med_id'] = int(loc['postalcode']) if 'postalcode' in loc else None
-            uni_exposure['med_type'] = EnumResolution.Postcode.value if uni_exposure['med_id'] > 0 else None
-        except (ValueError, TypeError):
-            uni_exposure['med_id'] = None
-            uni_exposure['med_type'] = None
+        # overwrite postcode from 'postalcode' field
+        if 'postalcode' in loc and isinstance(loc['postalcode'], numbers.Number) and not math.isnan(loc['postalcode']):
+            uni_exposure['med_id'] = int(loc['postalcode'])
+            uni_exposure['med_type'] = EnumResolution.Postcode.value
 
         # lat/lon
         uni_exposure['latitude'] = None
         uni_exposure['longitude'] = None
-        if loc['longitude'] is not None and loc['latitude'] is not None \
-                and not loc['longitude'] == 0 and not loc['latitude'] == 0:
+        if 'longitude' in loc and isinstance(loc['longitude'], numbers.Number) \
+                and 'latitude' in loc and isinstance(loc['latitude'], numbers.Number) \
+                and not loc['longitude'] == 0 and not loc['latitude'] == 0 \
+                and not math.isnan(loc['longitude']) and not math.isnan(loc['latitude']):
             if AU_BOUNDING_BOX['MIN'][0] <= loc["longitude"] <= AU_BOUNDING_BOX['MAX'][0] \
                     and AU_BOUNDING_BOX['MIN'][1] <= loc["latitude"] <= AU_BOUNDING_BOX['MAX'][1]:
                 uni_exposure['latitude'] = loc['latitude']
                 uni_exposure['longitude'] = loc['longitude']
-                if uni_exposure['med_id'] is None or uni_exposure['med_id'] == 0 and self._postcode_lookup:
+                if (uni_exposure['med_id'] is None or uni_exposure['med_id'] == 0) and self._postcode_lookup:
                     uni_exposure['med_id'] = self._postcode_lookup.get_postcode(loc["longitude"], loc["latitude"])
-                if uni_exposure['lrg_id'] is None:
+                if uni_exposure['lrg_id'] is None or uni_exposure['lrg_id'] == 0:
                     pass  # not required at lat/lon level
             else:
-                raise LocationLookupException("Location is not in Australia")
+                raise LocationLookupException("Location is not in Australia", error_code=121)
 
         # setting best res
         if uni_exposure['lrg_id'] is not None and uni_exposure['lrg_id'] > 0:
@@ -167,15 +209,16 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['best_res'] = EnumResolution.Postcode.value
         if uni_exposure['address_id'] is not None \
                 and isinstance(uni_exposure['address_id'], str) \
-                and len(uni_exposure['address_id']) == 14:  # todo: check for ok GNAF?
+                and len(uni_exposure['address_id']) == 14:
             uni_exposure['best_res'] = EnumResolution.Address.value
         if uni_exposure['latitude'] is not None and uni_exposure['longitude'] is not None:
             uni_exposure['best_res'] = EnumResolution.LatLong.value
 
         try:
-            if loc["areacode"] != 0:
-                uni_exposure['state'] = str(loc['areacode'])
-        except (ValueError, TypeError, KeyError):
+            areacode = loc["areacode"]
+            if areacode != 0 and not (isinstance(areacode, numbers.Number) and math.isnan(areacode)):
+                uni_exposure['state'] = str(areacode)
+        except (ValueError, TypeError, KeyError) as e:
             uni_exposure['state'] = None
 
         # uni_exposure['catchment_type'] # todo: when implementing flood
@@ -189,27 +232,35 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             year_built = 0
         uni_exposure['props'] = {"YearBuilt": year_built}
 
-        # uni_exposure['modelled']
+        # uni_exposure['modelled'] # todo: when implementing flood, check that location is in flood zone
 
-        return self._validate(uni_exposure)
+        return self._validate(uni_exposure, loc)
 
     def process_location(self, loc, coverage_type):
         try:
             uni_exposure = self.create_uni_exposure(loc, coverage_type)
             return {
-                'locnumber': loc['locnumber'],
+                'loc_id': loc['loc_id'],
                 'peril_id': self._peril_id,
                 'coverage_type': coverage_type,
                 'model_data': json.dumps(uni_exposure),
-                'status': OASIS_KEYS_SC,
+                'status': OASIS_KEYS_STATUS['success']['id'],
                 'message': "OK"
             }
         except LocationLookupException as e:
             return {
-                'locnumber': loc['locnumber'],
+                'loc_id': loc['loc_id'],
                 'peril_id': self._peril_id,
                 'coverage_type': coverage_type,
-                'status': OASIS_KEYS_FL,
+                'status': OASIS_KEYS_STATUS['fail']['id'],
+                'message': str(e)
+            }
+        except LocationNotModelledException as e:
+            return {
+                'loc_id': loc['loc_id'],
+                'peril_id': self._peril_id,
+                'coverage_type': coverage_type,
+                'status': OASIS_KEYS_STATUS['nomatch']['id'],
                 'message': str(e)
             }
 
@@ -218,9 +269,3 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         for loc, coverage_type in \
                 itertools.product(locs_seq, self._coverage_types):
             yield self.process_location(loc, coverage_type)
-
-
-if __name__ == "__main__":
-    cl = HailAUSKeysLookup(keys_data_directory="/hadoop/oasis/model_data/keys_data", model_name="hailAus")
-    test_loc = {'locnumber': 1, 'latitude': -33.8688, 'longitude': 151.2093 }
-    print(cl.process_location(test_loc, 1))

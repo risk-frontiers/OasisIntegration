@@ -1,17 +1,14 @@
 {
   "analysis_settings": {
     "model_settings": {
+      "return_period_file": true,
       "event_set": "P",
-      "leakage_factor": 0.5,
-      "peril_wind": true,
+      "event_occurrence_id": "1",
+      "static_motor": false,
       "demand_surge": false,
-      "peril_quake": false,
-      "peril_flood": false,
-      "peril_surge": false,
-      "event_occurrence_id": 1
+      "leakage_factor": 1
     },
-    "analysis_tag": 2,
-    "exposure_location": "L:",
+    "analysis_tag": 1,
     "gul_threshold": 0,
     "model_version_id": "HailAUS",
     "module_supplier_id": "RiskFrontiers",

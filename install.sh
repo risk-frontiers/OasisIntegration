@@ -1,47 +1,153 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd ${SCRIPT_DIR}
 
-export OASIS_VER='1.0.2'
-export UI_VER='1.0.2'
+GLOBAL_LICENCE_PATH=""
 
-# SETUP AND RUN COMPLEX MODEL EXAMPLE
-# Reset compose file to last commit && update tag number 
-cd $SCRIPT_DIR
-git checkout -- docker-compose.yml
-sed -i 's|:latest|:${OASIS_VER}|g' docker-compose.yml
+function compute_batch_count()
+{
+    scale_factor=$1
+    batch_count=$(expr `awk '/MemTotal/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${scale_factor})
+    echo ${batch_count}
+    batch_count=$([ ${batch_count} -le 1 ] && echo 1 || echo ${batch_count})
+    VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
+    batch_count=$([ ${VCPU_COUNT} -le ${batch_count} ] && echo ${VCPU_COUNT} || echo ${batch_count})
+    return ${batch_count}
+}
 
-# reset and build custom worker
-git checkout -- Dockerfile.custom_model_worker
-sed -i "s|:latest|:${OASIS_VER}|g" Dockerfile.custom_model_worker
-docker pull coreoasis/model_worker:$OASIS_VER
-docker build -f Dockerfile.custom_model_worker -t coreoasis/custom_model_worker:$OASIS_VER .
 
-# Start API
-docker-compose down
-docker-compose up -d
+function valid_licence()
+{
+    if [[ -f $1 ]]
+    then
+        return 0 # success
+    else
+        return 1 # failure
+    fi
+}
 
-# RUN OASIS UI
-GIT_UI=OasisUI
-if [ -d $SCRIPT_DIR/$GIT_UI ]; then
-    cd $SCRIPT_DIR/$GIT_UI
-    git fetch
-    git checkout $UI_VER
+function set_new_licence()
+{
+    read -p "Please set path to the Risk Frontiers licence file [$1]: " licence_path_in
+    if [[ ! -f ${licence_path_in} ]]
+    then
+        echo "Licence file not found in ${licence_path_in}. Exiting now!"
+        exit 1
+    fi
+    GLOBAL_LICENCE_PATH=${licence_path_in}
+}
+
+
+file_docker='docker/Dockerfile'
+file_versions='data_version.json'
+
+# Read and set versions
+env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER' 'INTEGRATION_VER' 'KTOOLS_VER' 'OASISLMF_VER')
+for var_name in "${env_vars[@]}"; do
+        var_value=$(cat ${file_versions} | grep ${var_name} | awk -F'"' '{ print $4 }')
+    export ${var_name}=${var_value}
+done
+echo "
+#########################################################################
+ Welcome to the Risk Frontiers HailAUS ${MODEL_VER} Oasis Integration ${INTEGRATION_VER}.
+ This release was developed and validated with the following components:
+
+   Model Data: ${DATA_VER}
+   Oasis API: ${OASIS_API_VER}
+   Oasis UI: ${OASIS_UI_VER}
+   Oasislmf: ${OASISLMF_VER}
+   Ktools: ${KTOOLS_VER}
+
+#########################################################################
+"
+
+echo "Installation started. Please follow the following instruction and press ENTER to use the suggested default values"
+
+# Customize BATCH_COUNT in conf.ini
+# SCALE_FACTOR is ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
+MIN_SCALE_FACTOR=10
+MAX_SCALE_FACTOR=20
+min_batch_count=$(compute_batch_count ${MAX_SCALE_FACTOR})
+max_batch_count=$(compute_batch_count ${MIN_SCALE_FACTOR})
+
+batch_count=${min_batch_count}
+read -p "Please set KTOOLS_BATCH_COUNT (ideally between ${min_batch_count} and ${max_batch_count}) [${batch_count}]: " batch_count_in
+re='^[0-9]+$'
+if [[ ! -z ${batch_count_in} ]] && [[ ${batch_count_in} =~ $re ]]
+then
+    batch_count=${batch_count_in}
+fi
+sed -i '/KTOOLS_BATCH_COUNT/c\KTOOLS_BATCH_COUNT = '${batch_count} conf.ini
+echo "Updated 'KTOOLS_BATCH_COUNT' in conf.ini to ${batch_count}"
+
+# set model data path
+model_data=${SCRIPT_DIR}/model_data
+read -p "Please enter the place where model data was downloaded (ABSOLUTE PATH) [${model_data}]: " model_data_in
+if [[ ! -z ${model_data_in} ]]
+then
+    model_data=${model_data_in}/${DATA_VER}
 else
-    git clone https://github.com/OasisLMF/$GIT_UI.git -b $UI_VER
-fi 
+    model_data=${model_data}/${DATA_VER}
+fi
+export MODEL_DATA_ROOT=${model_data}
 
-# Reset UI docker Tag
-cd $SCRIPT_DIR/$GIT_UI
-git checkout -- docker-compose.yml
-sed -i 's|:latest|:${UI_VER}|g' docker-compose.yml
-cd $SCRIPT_DIR
+# verify model data and licence
+if [[ -d ${model_data} ]]
+    then cd ${model_data}
 
-# Start UI
-docker network create shiny-net
-docker pull coreoasis/oasisui_app:$UI_VER
-docker-compose -f $SCRIPT_DIR/$GIT_UI/docker-compose.yml up -d
+    # shallow verify licence
+    licence_path=${model_data}/licence.txt
+    if [[ ! -f license.txt ]] && [[ ! -f licence.txt ]]
+    then
+        set_new_licence ${licence_path}
+        licence_path=${GLOBAL_LICENCE_PATH}
+    else
+        licence_path=$([ -f ${model_data}/licence.txt ] && echo ${model_data}/licence.txt || echo ${model_data}/license.txt)
+        read -p "Licence file exists in ${licence_path}. Do you want to use it? [Y]: " confirm_licence
+        if [[ ! -z ${confirm_license} ]] && [[ ! ${confirm_licence} = "Y" ]] && [[ ! ${confirm_licence} = "y" ]]
+        then
+             set_new_licence ${licence_path}
+             licence_path=${GLOBAL_LICENCE_PATH}
+        fi
+    fi
+    if  ! valid_licence ${licence_path}
+    then
+        echo "Licence file is invalid. Exiting now!"
+        exit 1
+    fi
 
-# Run API eveluation notebook
-cd $SCRIPT_DIR
-docker-compose -f api_evaluation_notebook/docker-compose.api_evaluation_notebook.yml build
-docker-compose -f api_evaluation_notebook/docker-compose.api_evaluation_notebook.yml up -d
+    cp ${licence_path} /tmp/licence.txt; cp /tmp/licence.txt ${model_data}; rm /tmp/licence.txt
+    echo "Licence file installed in ${model_data}"
+
+    # shallow verify model_data
+    if [[ ! -f "events.bin" ]]
+        then echo "This is not a valid model data directory: events.bin missing"
+        exit 1
+    fi
+
+    if [[ ! -f "events_p.bin" ]]
+        then echo "Creating events_p.bin"
+        ln -s events.bin events_p.bin
+    fi
+    if [[ ! -f "events_h.bin" ]]
+        then echo "Creating events_h.bin"
+        ln -s events.bin events_h.bin
+    fi
+
+    if [[ ! -f "occurrence.bin" ]]
+        then echo "This is not a valid model data directory: occurrence.bin missing"
+        exit 1
+    fi
+
+    if [[ ! -f "occurrence_1.bin" ]]
+        then echo "Creating occurrence_1.bin"
+        ln -s occurrence.bin occurrence_1.bin
+    fi
+else
+    echo "The model data '${model_data}' does not exist"
+    exit 1
+fi
+
+cd ${SCRIPT_DIR}
+# Run API, UI & Worker
+docker-compose -f docker-compose.yml --project-directory ${SCRIPT_DIR} up -d --build
