@@ -18,6 +18,8 @@ sudo usermod -aG docker $USER
 sudo su - $USER
 ```
 > Azure: you may need to perform the following in `/mnt` as we require at least 35GB of storage for the hazard and a lot more for temporary storage (see the *oasis_integration.pdf* for more information about the hardware requirement and an example Azure specification). You can also work in a more persistent storage. In the following step, double check that `/mnt` has enough free space (e.g. `df -h /mnt`)
+
+> Azure: by default, the drive containing the Operating System is 30GB. You will need to expand this drive for larger analysis. See the documentation for more information.
 3) Create working directory and clone the latest Oasis integration release
 ```
 sudo mkdir /mnt/oasis
@@ -42,7 +44,7 @@ OasisIntegration/
 ├── install.sh   <---------------------- installation script
 ├── jenkins
 ├── model_data   <---------------------- model_data contains revisions of Risk Frontiers' data
-│   ├── x.y  <---------------------- each version folder contains license.txt
+│   └── x.y  <---------------------- each version folder contains license.txt
 ├── model_resource.json
 ├── README.md
 ├── requirements.txt
@@ -53,19 +55,19 @@ OasisIntegration/
 └── tools
 
 ```
-7) Run the deployment script and follow the instructions. You will be asked to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and license file.
+7) Run the installation script and follow the instructions. 
 ```
 chmod +x install.sh
 ./install.sh
 ```
-> If you encounter **ERROR: An HTTP request took too long to complete. Retry with --verbose to obtain debug information.** then please re-run *install.sh*
-8) Access via the accessible IP (Public IP for Azure), using the default `user: admin` `pass: password` 
+>You will be asked to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and license file.
+8) Access via the accessible IP (Public IP for Azure) using the default `user: admin` `pass: password` 
 * [OasisUI Interface](http://localhost:8080/app/BFE_RShiny) - *localhost:8080/app/BFE_RShiny* 
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000* 
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*
 > Azure: you will also need to add an inbound firewall rule for port 8000 if you need direct access to the Oasis API
 
-10) To update the framework, do
+10) To update/upgrade the framework, do
 ```
 git pull
 chmod +x reset.sh
