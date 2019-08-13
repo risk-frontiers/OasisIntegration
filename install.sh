@@ -7,7 +7,7 @@ GLOBAL_LICENCE_PATH=""
 function compute_batch_count()
 {
     scale_factor=$1
-    batch_count=$(expr `awk '/MemFree/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${scale_factor})
+    batch_count=$(expr `awk '/MemTotal/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${scale_factor})
     echo ${batch_count}
     batch_count=$([ ${batch_count} -le 1 ] && echo 1 || echo ${batch_count})
     VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
@@ -42,12 +42,22 @@ file_docker='docker/Dockerfile'
 file_versions='data_version.json'
 
 # Read and set versions
-env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER')
+env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER' 'INTEGRATION_VER')
 for var_name in "${env_vars[@]}"; do
         var_value=$(cat ${file_versions} | grep ${var_name} | awk -F'"' '{ print $4 }')
     export ${var_name}=${var_value}
 done
-
+echo "
+#############################################################################################
+# Welcome to the Risk Frontiers HailAUS ${MODEL_VER} Oasis Integration ${INTEGRATION_VER}.                    #
+# This release was developed and validated with the following components:                   #
+#                                                                                           #
+#   Model Data: ${DATA_VER}                                                                         #
+#   Oasis API: ${OASIS_API_VER}                                                                        #
+#   Oasis UI: ${OASIS_UI_VER}                                                                         #
+#                                                                                           #
+#############################################################################################
+"
 # set installation user
 current_user=${USER}
 read -p "Please confirm the installation will be done by user ${current_user} (NEED SUDO) [Y/N]: " confirm_user
@@ -75,11 +85,13 @@ then
     echo "Updated 'KTOOLS_BATCH_COUNT' in conf.ini to ${batch_count}"
 
     # set model data path
-    model_data=${SCRIPT_DIR}/"model_data"
+    model_data=${SCRIPT_DIR}/model_data
     read -p "Please enter the place where model data was downloaded (ABSOLUTE PATH) [${model_data}]: " model_data_in
     if [[ ! -z ${model_data_in} ]]
     then
         model_data=${model_data_in}/${DATA_VER}
+    else
+        model_data=${model_data}/${DATA_VER}
     fi
     export MODEL_DATA_ROOT=${model_data}
 
@@ -108,7 +120,7 @@ then
             exit 1
         fi
 
-        cp ${licence_path} /tmp/licence.txt; cp /tmp/licence.txt ${model_data}
+        cp ${licence_path} /tmp/licence.txt; cp /tmp/licence.txt ${model_data}; rm /tmp/licence.txt
         echo "Licence file installed in ${model_data}"
 
         # shallow verify model_data

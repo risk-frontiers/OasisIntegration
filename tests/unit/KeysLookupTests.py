@@ -1,6 +1,7 @@
 import unittest
 import copy
 from parameterized import parameterized
+import itertools
 
 from oasislmf.utils.coverages import COVERAGE_TYPES
 
@@ -8,7 +9,36 @@ from complex_model import HailAUSKeysLookup
 from complex_model.Common import *
 from tests.unit.RFBaseTest import RFBaseTestCase
 
-COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["other"], COVERAGE_TYPES["bi"]]
+
+ALL_COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["other"], COVERAGE_TYPES["bi"]]
+NON_MOTOR_COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["bi"]]
+NON_BI_COVERAGES = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"], COVERAGE_TYPES["other"]]
+BUILDING_CONTENTS = [COVERAGE_TYPES["buildings"], COVERAGE_TYPES["contents"]]
+DEFAULT_OCCUPANCY_CODE = {"Residential": 1050, "Commercial": 1100, "Industrial": 1150}
+
+ALL_COVERAGES_ALL_OCCUPANCY = [[coverage, oc] for coverage, oc
+                               in itertools.product(ALL_COVERAGES, DEFAULT_OCCUPANCY_CODE.values())]
+
+ALL_COVERAGES_COMMERCIAL_INDUSTRIAL = [[coverage, oc] for coverage, oc
+                                       in itertools.product(ALL_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Commercial"],
+                                                                            DEFAULT_OCCUPANCY_CODE["Industrial"]])]
+NON_BI_COVERAGES_RESIDENTIAL = [[coverage, oc] for coverage, oc
+                                in itertools.product(NON_BI_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Residential"]])]
+
+OK_COVERAGES_OCCUPANCY_COMBINATION = ALL_COVERAGES_COMMERCIAL_INDUSTRIAL + NON_BI_COVERAGES_RESIDENTIAL
+
+FAIL_COVERAGES_OCCUPANCY_COMBINATION = [[COVERAGE_TYPES["bi"], DEFAULT_OCCUPANCY_CODE["Residential"]]]
+
+NON_MOTOR_COMMERCIAL_INDUSTRIAL = [[coverage, oc] for coverage, oc
+                                   in itertools.product(NON_MOTOR_COVERAGES,
+                                                        [DEFAULT_OCCUPANCY_CODE["Commercial"],
+                                                         DEFAULT_OCCUPANCY_CODE["Industrial"]])]
+
+BUILDING_CONTENTS_RESIDENTIAL = [[coverage, oc] for coverage, oc
+                                 in itertools.product(BUILDING_CONTENTS,
+                                                      [DEFAULT_OCCUPANCY_CODE["Residential"]])]
+
+OK_NON_MOTOR_COVERAGES_OCCUPANCY_COMBINATION = NON_MOTOR_COMMERCIAL_INDUSTRIAL + BUILDING_CONTENTS_RESIDENTIAL
 
 
 class OccupancyCodeTests(RFBaseTestCase):
@@ -48,8 +78,8 @@ class MotorExposureTests(RFBaseTestCase):
     def test_is_motor_true(self, cc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                   'latitude': -33.8688, 'longitude': 151.2093,
-                   'postalcode': 2000, 'constructioncode': cc}
+               'latitude': -33.8688, 'longitude': 151.2093,
+               'postalcode': 2000, 'constructioncode': cc}
         self.assertTrue(lookup._is_motor(loc))
 
     def test_is_motor_false(self):
@@ -116,7 +146,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     3. cascading geolocation
     """
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
+    @parameterized.expand([[coverage] for coverage in ALL_COVERAGES])
     def test_required_fields(self, coverage):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
 
@@ -132,12 +162,12 @@ class CreateUniExposureTests(RFBaseTestCase):
         loc = {'loc_id': 'loc1'}
         self.assertRaisesWithErrorCode(101, lookup.create_uni_exposure, loc, coverage["id"])
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_unsupported_values(self, coverage):
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_unsupported_values(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'latitude': -33.8688, 'longitude': 151.2093,
-                       'postalcode': 2000}
+                       'postalcode': 2000, 'occupancycode': oc}
 
         # unsupported peril
         loc = copy.deepcopy(default_loc)
@@ -164,11 +194,11 @@ class CreateUniExposureTests(RFBaseTestCase):
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
         self.assertEqual(2001, exposure["props"]["YearBuilt"])
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_level(self, coverage):
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_level(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                       'geogscheme1': "GNAF", 'geogname1': "GANSW123456789"}
+                       'geogscheme1': "GNAF", 'geogname1': "GANSW123456789", 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -183,12 +213,21 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
         self.assertFalse('state' in exposure and exposure['state'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_state(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_level_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': "GNAF", 'geogname1': "GANSW123456789", 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_state(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': "GNAF", 'geogname1': "GANSW123456789",
-                       'areacode': 'au'}
+                       'areacode': 'au', 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -203,13 +242,23 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_latlon_level(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_state_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': "GNAF", 'geogname1': "GANSW123456789",
+                       'areacode': 'au', 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_level(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                       'latitude': latitude, 'longitude': longitude}
+                       'latitude': latitude, 'longitude': longitude, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -223,14 +272,25 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
         self.assertFalse('state' in exposure and exposure['state'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_latlon(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_level_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
-                       'latitude': latitude, 'longitude': longitude}
+                       'latitude': latitude, 'longitude': longitude, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -244,11 +304,23 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_postcode_level(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
+                       'latitude': latitude, 'longitude': longitude, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_postcode_level(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                       'postalcode': 2000}
+                       'postalcode': 2000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -262,11 +334,20 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_pc4_level(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_postcode_level_fail(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                       'geogscheme1': "PC4", "geogname1": 2000}
+                       'postalcode': 2000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_pc4_level(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': "PC4", "geogname1": 2000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -280,12 +361,21 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_postcode(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_pc4_level_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': "PC4", "geogname1": 2000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_postcode(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
-                       'postalcode': 2000}
+                       'postalcode': 2000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -300,14 +390,24 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_latlon_postcode(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_postcode_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
+                       'postalcode': 2000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_postcode(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'latitude': latitude, 'longitude': longitude,
-                       'postalcode': 2000}
+                       'postalcode': 2000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -321,14 +421,26 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_latlon_pc4(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_postcode_fail(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'latitude': latitude, 'longitude': longitude,
-                       'geogscheme1': 'PC4', 'geogname1': 2000}
+                       'postalcode': 2000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_pc4(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'PC4', 'geogname1': 2000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -342,15 +454,27 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_latlon_postcode_pc4(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_pc4_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'PC4', 'geogname1': 2000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_postcode_pc4(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'latitude': latitude, 'longitude': longitude,
                        'geogscheme1': 'PC4', 'geogname1': 2000,
-                       'postalcode': 4000}
+                       'postalcode': 4000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -364,8 +488,21 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_latlon_postcode_pc4(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_postcode_pc4_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'PC4', 'geogname1': 2000,
+                       'postalcode': 4000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_pc4(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
@@ -373,7 +510,7 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
                        'latitude': latitude, 'longitude': longitude,
                        'geogscheme1': 'PC4', 'geogname1': 2000,
-                       'postalcode': 4000}
+                       'postalcode': 4000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -388,11 +525,25 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_cresta_level(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_pc4_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'PC4', 'geogname1': 2000,
+                       'postalcode': 4000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_cresta_level(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                       'geogscheme1': 'CRO', 'geogname1': 49}
+                       'geogscheme1': 'CRO', 'geogname1': 49, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -406,12 +557,22 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_cresta(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_cresta_level_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'CRO', 'geogname1': 49, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_cresta(self, coverage, occupancy_code):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
-                       'geogscheme2': 'CRO', 'geogname2': 49}
+                       'geogscheme2': 'CRO', 'geogname2': 49,
+                       "occupancycode": occupancy_code}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -426,14 +587,26 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_latlon_cresta(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_cresta_fail(self, coverage, occupancy_code):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
+                       'geogscheme2': 'CRO', 'geogname2': 49,
+                       "occupancycode": occupancy_code}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_cresta(self, coverage, occupancy_code):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'latitude': latitude, 'longitude': longitude,
-                       'geogscheme1': 'CRO', 'geogname1': 49}
+                       'geogscheme1': 'CRO', 'geogname1': 49,
+                       "occupancycode": occupancy_code}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -447,12 +620,26 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_postcode_cresta(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_cresta_fail(self, coverage, occupancy_code):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'CRO', 'geogname1': 49,
+                       "occupancycode": occupancy_code}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_postcode_cresta(self, coverage, occupancy_code):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'CRO', 'geogname1': 49,
-                       'postalcode': 4000}
+                       'postalcode': 4000,
+                       "occupancycode": occupancy_code}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -467,8 +654,19 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('longitude' in exposure and exposure['longitude'] is not None)
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_latlon_postcode_cresta(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_postcode_cresta_fail(self, coverage, occupancy_code):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'CRO', 'geogname1': 49,
+                       'postalcode': 4000,
+                       "occupancycode": occupancy_code}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_cresta(self, coverage, occupancy_code):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
@@ -476,7 +674,8 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'latitude': latitude, 'longitude': longitude,
                        'geogscheme1': 'CRO', 'geogname1': 49,
                        'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
-                       'postalcode': 4000}
+                       'postalcode': 4000,
+                       "occupancycode": occupancy_code}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -492,11 +691,26 @@ class CreateUniExposureTests(RFBaseTestCase):
 
         self.assertFalse('lrg_id' in exposure and exposure['lrg_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_ica_zone_level(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_cresta_fail(self, coverage, occupancy_code):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'CRO', 'geogname1': 49,
+                       'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
+                       'postalcode': 4000,
+                       "occupancycode": occupancy_code}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_ica_zone_level(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
-                       'geogscheme1': 'ICA', 'geogname1': 49}
+                       'geogscheme1': 'ICA', 'geogname1': 49, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -510,12 +724,21 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_ica_zone_cresta_level(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_ica_zone_level_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'ICA', 'geogname1': 49, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_ica_zone_cresta_level(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'ICA', 'geogname1': 49,
-                       'geogscheme2': 'CRO', 'geogname2': 2}
+                       'geogscheme2': 'CRO', 'geogname2': 2, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -530,12 +753,22 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('longitude' in exposure and exposure['longitude'] is not None)
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_ica_zone(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_ica_zone_cresta_level_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'ICA', 'geogname1': 49,
+                       'geogscheme2': 'CRO', 'geogname2': 2, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_ica_zone(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
-                       'geogscheme2': 'ICA', 'geogname2': 49}
+                       'geogscheme2': 'ICA', 'geogname2': 49, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -550,14 +783,24 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_latlon_ica_zone(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_ica_zone_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
+                       'geogscheme2': 'ICA', 'geogname2': 49, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_ica_zone(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'latitude': latitude, 'longitude': longitude,
-                       'geogscheme1': 'ICA', 'geogname1': 49}
+                       'geogscheme1': 'ICA', 'geogname1': 49, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -571,12 +814,24 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_postcode_ica_zone(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_latlon_ica_zone_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'ICA', 'geogname1': 49, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_postcode_ica_zone(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'ICA', 'geogname1': 49,
-                       'postalcode': 4000}
+                       'postalcode': 4000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -591,8 +846,18 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertFalse('longitude' in exposure and exposure['longitude'] is not None)
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_latlon_postcode_ica_zone(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_postcode_ica_zone_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'geogscheme1': 'ICA', 'geogname1': 49,
+                       'postalcode': 4000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_ica_zone(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
@@ -600,7 +865,7 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'latitude': latitude, 'longitude': longitude,
                        'geogscheme1': 'ICA', 'geogname1': 49,
                        'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
-                       'postalcode': 4000}
+                       'postalcode': 4000, 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -616,8 +881,22 @@ class CreateUniExposureTests(RFBaseTestCase):
 
         self.assertFalse('zone_id' in exposure and exposure['zone_id'] is not None)
 
-    @parameterized.expand([[coverage] for coverage in COVERAGES])
-    def test_address_latlon_postcode_cresta_ica_zone_state(self, coverage):
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_ica_zone_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'ICA', 'geogname1': 49,
+                       'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
+                       'postalcode': 4000, 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
+    @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_cresta_ica_zone_state(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         latitude = -33.8688
         longitude = 151.2093
@@ -626,7 +905,7 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'geogscheme1': 'ICA', 'geogname1': 49,
                        'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
                        'geogscheme3': 'CRO', 'geogname3': 2,
-                       'postalcode': 4000, 'areacode': 'au'}
+                       'postalcode': 4000, 'areacode': 'au', 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -643,6 +922,21 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertEqual(EnumResolution.LatLong.value, exposure['best_res'])
         self.assertEqual('au', exposure['state'])
 
+    @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
+    def test_address_latlon_postcode_cresta_ica_zone_state_fail(self, coverage, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        latitude = -33.8688
+        longitude = 151.2093
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
+                       'latitude': latitude, 'longitude': longitude,
+                       'geogscheme1': 'ICA', 'geogname1': 49,
+                       'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
+                       'geogscheme3': 'CRO', 'geogname3': 2,
+                       'postalcode': 4000, 'areacode': 'au', 'occupancycode': oc}
+
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
+
     @parameterized.expand([[cc] for cc in range(5850, 5950)])
     def test_motor_exposure_motor(self, cc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
@@ -654,7 +948,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
         self.assertEqual(EnumCover.Motor.value, exposure['cover_id'])
 
-    def test_motor_exposure_building(self):
+    def test_motor_exposure_no_oc_motor(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'postalcode': 2000}
@@ -662,6 +956,15 @@ class CreateUniExposureTests(RFBaseTestCase):
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
         self.assertEqual(EnumCover.Building.value, exposure['cover_id'])
+
+    @parameterized.expand([[coverage_oc[0], cc, coverage_oc[1]] for cc, coverage_oc in
+                           itertools.product(range(5850, 5950), OK_NON_MOTOR_COVERAGES_OCCUPANCY_COMBINATION)])
+    def test_motor_exposure_building_oc_motor(self, coverage, cc, oc):
+        lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="HailAus")
+        default_loc = {'locperilscovered': 'AA1', 'loc_id': 1, 'postalcode': 2000,
+                       'constructioncode': cc, 'occupancycode': oc}
+        loc = copy.deepcopy(default_loc)
+        self.assertRaisesWithErrorCode(152, lookup.create_uni_exposure, loc, coverage["id"])
 
 
 if __name__ == '__main__':

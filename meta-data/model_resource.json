@@ -42,12 +42,12 @@
                   }
             },
             {
-               "leakage_factor": {
+               "input_scaling": {
                    "name": "Input Scaling",
            "desc": "TIV input scaling",
                    "type": "float",
-                   "default": 1.0,
-                   "min": 0.0,
+                   "default": 0.0,
+                   "min": -1.0,
                    "max":1.0
                 }
             }

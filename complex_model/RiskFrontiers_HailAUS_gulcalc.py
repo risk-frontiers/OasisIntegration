@@ -72,6 +72,14 @@ def main():
         '-c', '--coverage_output_stream', required=False, default=None,
         help='Coverage output stream.',
     )
+    parser.add_argument(
+        '-M', '--model_data_directory', required=False, default=DS.MODEL_DATA_DIRECTORY,
+        help='Model data directory.',
+    )
+    parser.add_argument(
+        '-X', '--complex_model_directory', required=False, default=DS.COMPLEX_MODEL_DIRECTORY,
+        help='Complex model directory.',
+    )
 
     args = parser.parse_args()
 
@@ -143,7 +151,7 @@ def main():
         logging.info("The process independent log file for this worker is " + log_filename)
 
         # Write out RF canonical input files
-        risk_platform_data = os.path.join(DS.MODEL_DATA_DIRECTORY)
+        risk_platform_data = os.path.join(args.model_data_directory)
         if not is_valid_model_data(risk_platform_data):
             message = "Model data not set correctly: " + risk_platform_data
             logging.error(message)
@@ -167,7 +175,7 @@ def main():
         logging.info("COMPLETED: RF input database generated in " + temp_db_fp + " [OK]")
 
         # generate oasis_param.json
-        complex_model_directory = DS.COMPLEX_MODEL_DIRECTORY
+        complex_model_directory = args.complex_model_directory
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
         num_cores = multiprocessing.cpu_count()
         max_parallelism = int(max(1, min(num_cores, num_cores/max_event_batch)))
@@ -193,8 +201,8 @@ def main():
             if 'static_motor' in model_settings else DS.DEFAULT_STATIC_MOTOR,
             "DemandSurge": model_settings['demand_surge']
             if 'demand_surge' in model_settings else DS.DEFAULT_DEMAND_SURGE,
-            "InputScaling": model_settings['leakage_factor']
-            if 'leakage_factor' in model_settings else DS.DEFAULT_INPUT_SCALING,
+            "InputScaling": model_settings['input_scaling']
+            if 'input_scaling' in model_settings else DS.DEFAULT_INPUT_SCALING,
         }
 
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
