@@ -42,22 +42,23 @@ file_docker='docker/Dockerfile'
 file_versions='data_version.json'
 
 # Read and set versions
-env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER' 'INTEGRATION_VER' 'KTOOLS_VER')
+env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER' 'INTEGRATION_VER' 'KTOOLS_VER' 'OASISLMF_VER')
 for var_name in "${env_vars[@]}"; do
         var_value=$(cat ${file_versions} | grep ${var_name} | awk -F'"' '{ print $4 }')
     export ${var_name}=${var_value}
 done
 echo "
-#############################################################################################
-# Welcome to the Risk Frontiers HailAUS ${MODEL_VER} Oasis Integration ${INTEGRATION_VER}.                    #
-# This release was developed and validated with the following components:                   #
-#                                                                                           #
-#   Model Data: ${DATA_VER}                                                                         #
-#   Oasis API: ${OASIS_API_VER}                                                                        #
-#   Oasis UI: ${OASIS_UI_VER}                                                                         #
-#   Ktools: ${KTOOLS_VER}                                                                             #
-#                                                                                           #
-#############################################################################################
+#########################################################################
+ Welcome to the Risk Frontiers HailAUS ${MODEL_VER} Oasis Integration ${INTEGRATION_VER}.
+ This release was developed and validated with the following components:
+
+   Model Data: ${DATA_VER}
+   Oasis API: ${OASIS_API_VER}
+   Oasis UI: ${OASIS_UI_VER}
+   Oasislmf: ${OASISLMF_VER}
+   Ktools: ${KTOOLS_VER}
+
+#########################################################################
 "
 
 echo "Installation started. Please follow the following instruction and press ENTER to use the suggested default values"
@@ -103,7 +104,7 @@ if [[ -d ${model_data} ]]
     else
         licence_path=$([ -f ${model_data}/licence.txt ] && echo ${model_data}/licence.txt || echo ${model_data}/license.txt)
         read -p "Licence file exists in ${licence_path}. Do you want to use it? [Y]: " confirm_licence
-        if [[ ! ${confirm_licence} = "Y" ]] && [[ ! ${confirm_licence} = "y" ]]
+        if [[ ! -z ${confirm_license} ]] && [[ ! ${confirm_licence} = "Y" ]] && [[ ! ${confirm_licence} = "y" ]]
         then
              set_new_licence ${licence_path}
              licence_path=${GLOBAL_LICENCE_PATH}
