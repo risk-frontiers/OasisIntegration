@@ -17,6 +17,8 @@ then
     docker rm -f oasis_rabbit
     docker rm -f oasis_flower
     docker rm -f oasis_user-interface_1
+    docker rm -f oasisintegration_user-interface_1
+    docker rm -f oasisui_proxy
 
     echo "Pruning obsolete images and networks"
     docker system prune
