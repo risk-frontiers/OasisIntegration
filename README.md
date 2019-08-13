@@ -26,14 +26,6 @@ cd /mnt/oasis
 git clone https://github.com/risk-frontiers/OasisIntegration.git
 cd OasisIntegration
 ```
-4) Set the  `KTOOLS_BATCH_COUNT` in `conf.ini` to a value between *X/16* and *X/10* and should be smaller or equal to 
-the total number of cores, where *X* is the amount of available memory. For instance, it should be *4* on a hardware 
-with 48GB of memory and 6 cores. You can run `free -h` to print out the total memory. To update `conf.ini` file, execute
-```
-nano conf.ini   
-```
-Update the value for `KTOOLS_BATCH_COUNT` then press `CTRL+X`, then `Y`, then `ENTER` to save.
-
 5) Transfer model_data.7z into the *OasisIntegration* folder. You can use [WinSCP](https://winscp.net/eng/download.php) or [pscp](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) to transfer files from windows to linux. Then extract and remove the compressed archive:
 ```
 7z x model_data.7z
@@ -58,10 +50,10 @@ OasisIntegration/
 ├── tasks.py
 └── tests
 ```
-7) Run the deployment script
+7) Run the deployment script and follow the instructions. You will be ask to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and licence file.
 ```
-chmod +x rf_install.sh
-./rf_install.sh
+chmod +x install.sh
+./install.sh
 ```
 > If you encounter **ERROR: An HTTP request took too long to complete. Retry with --verbose to obtain debug information.** then please re-run *rf_instal.sh*
 8) Access via the accessible IP (Public IP for Azure), using the default `user: admin` `pass: password` 
@@ -83,7 +75,7 @@ or different vendors) is **VERY DANGEROUS**. Please use this for technical testi
 git pull
 chmod +x reset.sh
 ./reset.sh  # type y to start reset, then type y when asked about prunning, then type no when asked to delete data
-./rf_install.sh
+./install.sh
 ``` 
 ### Notes: 
 * A valid Risk Frontiers license is required to run the integrated model. Please contact 
