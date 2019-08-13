@@ -1,0 +1,2 @@
+item_id,coverage_id,model_data,group_id
+1,1,"{""lob_id"": 1, ""cover_id"": 1, ""loc_id"": ""1"", ""country_code"": ""au"", ""address_id"": ""GAACT714845933"", ""address_type"": 0, ""med_id"": null, ""med_type"": null, ""lrg_id"": null, ""lrg_type"": null, ""zone_id"": null, ""zone_type"": null, ""latitude"": null, ""longitude"": null, ""best_res"": 0, ""state"": null, ""props"": {""YearBuilt"": 2019}}",1

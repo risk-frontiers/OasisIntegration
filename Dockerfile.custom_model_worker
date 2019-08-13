@@ -1,6 +1,8 @@
-FROM coreoasis/model_worker:latest 
+ARG worker_ver=latest
+FROM coreoasis/model_worker:$worker_ver
 
-COPY ./requirements.txt /tmp/ 
+COPY ./requirements.txt /tmp/
+RUN pip install --upgrade pip
 RUN pip install -r /tmp/requirements.txt
 
 COPY ./conf.ini ./

@@ -64,6 +64,8 @@ class PostcodeLookup(object):
         :param lat: longitude of the point
         :return: an integer representing the postcode
         """
+        if lat is None or lon is None:
+            return None
         point = Point(float(lon), float(lat))
         quad = self._postcode_quadtree.Lookup(lat, lon)
         if quad:
@@ -74,9 +76,3 @@ class PostcodeLookup(object):
                         if polygon.contains(point):
                             return postcode
         return None
-
-
-if __name__ == "__main__":
-    pl = PostcodeLookup("/hadoop/oasis/model_data/keys_data")
-    test_loc = {'lat': -37.9737, 'lon': 145.173}
-    print(pl.get_postcode(test_loc['lon'], test_loc['lat']))

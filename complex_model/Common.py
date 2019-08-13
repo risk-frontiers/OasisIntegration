@@ -3,34 +3,8 @@
 """"This file contains constants translated from the MultiPeril Workbench and OED specification"""
 
 from enum import Enum
+from oasislmf.utils.peril import PERILS, PERIL_GROUPS
 from complex_model.RFException import ArgumentOutOfRangeException
-
-
-class OEDPeril(Enum):
-    QuakeShake = 1
-    FireFollowing = 2
-    Tsunami = 4
-    SprinklerLeakage = 8
-    Landslide = 16
-    Liquefaction = 32
-    TropicalCyclone = 64
-    ExtraTropicalCyclone = 128
-    StormSurge = 256
-    FluvialFlood = 512
-    FlashSurfacePluvialFlood = 1024
-    OtherConvectiveWind = 2048
-    Tornado = 4096
-    Hail = 8192
-    Snow = 16384
-    Ice = 32768
-    Freeze = 65536
-    NonCat = 131072
-    Bushfire = 262144
-    NBCRTerrorism = 524288
-    ConventionalTerrorism = 1048576
-    Lightning = 2097152
-    WinterstormWind = 4194304
-    Smoke = 8388608
 
 
 class EnumPeril(Enum):
@@ -46,25 +20,25 @@ class EnumPeril(Enum):
 
 
 def oed_to_rf_peril(oed_peril_id):
-    if oed_peril_id == 8192:
+    if oed_peril_id == "XHL":
         return EnumPeril.Hail
-    if oed_peril_id == 1:
+    if oed_peril_id == "QEQ":
         return EnumPeril.Quake
-    if oed_peril_id == 512:
+    if oed_peril_id == "ORF":
         return EnumPeril.RiverineFlood
-    if oed_peril_id == 262144:
+    if oed_peril_id == "BBF":
         return EnumPeril.Bushfire
-    if oed_peril_id == 64:
+    if oed_peril_id == "WTC":
         return EnumPeril.Cyclone
 
 
 PerilSet = {
-    "hailaus": {"OED_ID": 8192, "COUNTRY": "au", "MAX_EVENT_INDEX": 134704731},
-    "quakeaus": {"OED_ID": 1, "COUNTRY": "au", "MAX_EVENT_INDEX": 1000252},
-    "floodaus": {"OED_ID": 512, "COUNTRY": "au", "MAX_EVENT_INDEX": 535000},
-    "fireaus": {"OED_ID": 262144, "COUNTRY": "au", "MAX_EVENT_INDEX": 291577},
-    "cyclaus": {"OED_ID": 64, "COUNTRY": "au", "MAX_EVENT_INDEX": 371653},
-    "quakenz": {"OED_ID": 1, "COUNTRY": "nz", "MAX_EVENT_INDEX": 10441016},
+    "hailaus": {"OED_CODE": 8192, "OED_ID": "XHL", "COUNTRY": "au", "MAX_EVENT_INDEX": 134704731},
+    "quakeaus": {"OED_CODE": 1, "OED_ID": "QEQ", "COUNTRY": "au", "MAX_EVENT_INDEX": 1000252},
+    "floodaus": {"OED_CODE": 512, "OED_ID": "ORF", "COUNTRY": "au", "MAX_EVENT_INDEX": 535000},
+    "fireaus": {"OED_CODE": 262144, "OED_ID": "BBF", "COUNTRY": "au", "MAX_EVENT_INDEX": 291577},
+    "cyclaus": {"OED_CODE": 64, "OED_ID": "WTC", "COUNTRY": "au", "MAX_EVENT_INDEX": 371653},
+    "quakenz": {"OED_CODE": 1, "OED_ID": "QEQ", "COUNTRY": "nz", "MAX_EVENT_INDEX": 10441016},
 }
 PerilSet = {x: {"OED_ID": PerilSet[x]["OED_ID"],
                 "COUNTRY": PerilSet[x]["COUNTRY"],
@@ -73,8 +47,11 @@ PerilSet = {x: {"OED_ID": PerilSet[x]["OED_ID"],
             for x in PerilSet}
 
 
-RFPerilMask = OEDPeril.Bushfire.value | OEDPeril.QuakeShake.value | OEDPeril.FluvialFlood.value |\
-              OEDPeril.TropicalCyclone.value | OEDPeril.Hail.value
+def get_covered_ids(peril_id):
+    res = [PERILS[x]['id'] for x in PERILS if PERILS[x]['id'] == peril_id]
+    res = res + [peril for x in PERIL_GROUPS if PERIL_GROUPS[x]['id'] == peril_id
+                 for peril in PERIL_GROUPS[x]['peril_ids']]
+    return res
 
 
 class EnumResolution(Enum):
@@ -127,7 +104,7 @@ def to_uni_scale_id(res):
     if res == EnumResolution.Catchment:
         return "catchment_id"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "code"  # todo: this is wrong
+        return "error_code"  # todo: this is wrong
     raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
 
 
@@ -145,7 +122,7 @@ def to_uni_scale_type(res):
     if res == EnumResolution.Catchment:
         return "catchment_type"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "code"  # todo: wrong
+        return "error_code"  # todo: wrong
     # raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
     return None
 
@@ -174,16 +151,30 @@ def to_db_column_name(res):
     if res == EnumResolution.BeeHive:
         return "beehive_50km"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "code"
+        return "error_code"
     raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
+
+
+class EnumCover(Enum):
+    Building = 1
+    Contents = 2
+    BI = 3
+    Motor = 4
 
 
 def oed_to_rf_coverage(oed_cover):
     if oed_cover == 1:
-        return 1  # Building
+        return EnumCover.Building.value  # Building
     if oed_cover == 2:
-        return 4  # Motor
+        return EnumCover.Motor.value  # Motor
     if oed_cover == 3:
-        return 2  # Contents
+        return EnumCover.Contents.value  # Contents
     if oed_cover == 4:
-        return 3  # Business Interruption
+        return EnumCover.BI.value  # Business Interruption
+
+
+class EnumLineOfBusiness(Enum):
+    All = 0
+    Residential = 1
+    Commercial = 2
+    Industrial = 3

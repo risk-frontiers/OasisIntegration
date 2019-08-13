@@ -1,0 +1,66 @@
+{
+    "model_settings":[
+        {"event_set":{
+          "name": "Event Set",
+          "desc": "Either Probabilistic or Historic",
+              "type":"dictionary",
+               "default": "P",
+
+                      "values":{
+                        "P": "Probabilistic"
+                    }
+            }
+         },
+             {
+                "event_occurrence_id":{
+            "name": "Occurrence Set",
+            "desc": "Tooltip for Occurrence selection",
+                    "type":"dictionary",
+                    "default": "1",
+                    "values":{
+                       "1":"Long Term"
+                    }
+                }
+
+            },
+            {
+                 "static_motor":{
+                    "name": "Static Motor Vehicle",
+            "desc": "Execute Risk Frontiers engine with Static Motor enabled",
+                    "type":"boolean",
+                    "default": false
+
+                  }
+            },
+            {
+                 "demand_surge":{
+                    "name": "Demand Surge",
+            "desc": "Execute Risk Frontiers engine with Demand Surge enabled",
+                    "type":"boolean",
+                    "default": false
+
+                  }
+            },
+            {
+               "input_scaling": {
+                   "name": "Input Scaling",
+           "desc": "TIV input scaling",
+                   "type": "float",
+                   "default": 0.0,
+                   "min": -1.0,
+                   "max":1.0
+                }
+            }
+    ],
+    "lookup_settings":[
+        {
+        "PerilCodes":{
+            "type":"dictionary",
+            "values":{
+                "XHL": "Hailstorm",
+                "XX1": "Convective storm peril group"
+            }
+         }
+        }
+    ]
+}
