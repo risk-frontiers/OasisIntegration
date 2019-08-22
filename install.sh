@@ -19,6 +19,7 @@ function compute_batch_count()
 
 function valid_licence()
 {
+    # TODO: this needs to be able to do some parsing of the license file rather that this simplistic check
     if [[ -f $1 ]]
     then
         return 0 # success
