@@ -1,4 +1,4 @@
 #-e git+https://git@github.com/OasisLMF/OasisLMF.git@184de5c8fb068dd02ea9fb49c7eadac02e28da1c#egg=oasislmf
-oasislmf==1.4.0
+oasislmf==1.4.1
 msgpack
 parameterized
