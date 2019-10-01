@@ -211,7 +211,7 @@ def main():
             logging.debug("The Risk Frontiers .Net engine will be called with the following parameters")
             logging.debug(json.dumps(oasis_param, indent=4, separators=(',', ':')))
 
-        # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json
+        # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json [--debut] --log path_to_log.txt
         cmd_str = "{} --oasis -c {} {} --log {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
                                                                      "Risk.Platform.Core", "Risk.Platform.Core"),
                                                         oasis_param_fp,
