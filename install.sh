@@ -72,7 +72,7 @@ MAX_SCALE_FACTOR=20
 min_batch_count=1  # $(compute_batch_count ${MAX_SCALE_FACTOR})
 max_batch_count=$(compute_batch_count ${MIN_SCALE_FACTOR})
 
-batch_count=${min_batch_count}
+batch_count=${max_batch_count}
 read -p "Please set KTOOLS_BATCH_COUNT (ideally between ${min_batch_count} and ${max_batch_count}) [${batch_count}]: " batch_count_in
 re='^[0-9]+$'
 if [[ ! -z ${batch_count_in} ]] && [[ ${batch_count_in} =~ $re ]]
