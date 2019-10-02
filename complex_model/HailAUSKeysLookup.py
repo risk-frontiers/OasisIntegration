@@ -11,6 +11,7 @@ from complex_model.PostcodeLookup import PostcodeLookup
 from complex_model.RFException import LocationLookupException, LocationNotModelledException
 from complex_model.Common import *
 from complex_model.DefaultSettings import COUNTRY_CODE
+from complex_model.utils import is_integer, is_float
 
 
 class HailAUSKeysLookup(OasisBaseKeysLookup):
@@ -103,17 +104,17 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['address_type'] = EnumResolution.Address.value
 
         # ica zone
-        if geog_scheme == "ICA" and isinstance(geog_name, numbers.Number) and 0 < geog_name < 50:
+        if geog_scheme == "ICA" and is_integer(geog_name) and 0 < geog_name < 50:
             uni_exposure["lrg_id"] = int(geog_name)
             uni_exposure['lrg_type'] = EnumResolution.IcaZone.value
 
         # cresta
-        if geog_scheme == "CRO" and isinstance(geog_name, numbers.Number) and 0 < geog_name < 50:
+        if geog_scheme == "CRO" and is_integer(geog_name) and 0 < geog_name < 50:
             uni_exposure["zone_id"] = int(geog_name)
             uni_exposure['zone_type'] = EnumResolution.Cresta.value
 
         # postcode
-        if geog_scheme == "PC4" and isinstance(geog_name, numbers.Number) and 0 < geog_name:
+        if geog_scheme == "PC4" and is_integer(geog_name) and 0 < geog_name:
             uni_exposure['med_id'] = int(geog_name)
             uni_exposure['med_type'] = EnumResolution.Postcode.value
 
@@ -178,7 +179,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                 pass
 
         # overwrite postcode from 'postalcode' field
-        if 'postalcode' in loc and isinstance(loc['postalcode'], numbers.Number) and not math.isnan(loc['postalcode']):
+        if 'postalcode' in loc and is_integer(loc['postalcode']):
             uni_exposure['med_id'] = int(loc['postalcode'])
             uni_exposure['med_type'] = EnumResolution.Postcode.value
 
