@@ -53,15 +53,19 @@ OasisIntegration/
 ├── tasks.py
 ├── tests
 └── tools
-
 ```
-7) Run the installation script and follow the instructions. 
+7) **Optional:** Log in using a credential that has access to `coreoasis/rf_hail:tagname`
+```
+docker login
+```
+8) Run the installation script and follow the instructions. 
 ```
 chmod +x install.sh
 ./install.sh
 ```
->You will be asked to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and license file.
-8) Access via the accessible IP (Public IP for Azure) using the default `user: admin` `pass: password` 
+>You will be asked to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and license file. You can directly 
+retrieve the docker image from Oasis' docker image repository provided you have run `docker login` above.
+9) Access via the accessible IP (Public IP for Azure) using the default `user: admin` `pass: password` 
 * [OasisUI Interface](http://localhost:8080/) - *localhost:8080* 
 * [API Swagger UI](http://localhost:8000/) - *localhost:8000* 
 * [API Admin Panel](http://localhost:8000/admin) - *localhost:8000/admin*

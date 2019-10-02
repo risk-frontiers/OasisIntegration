@@ -62,11 +62,6 @@ services:
   worker:
     image: coreoasis/rf_hail:${INTEGRATION_VER}
     container_name: oasis_complex_model
-    build:
-      context: .
-      dockerfile: Dockerfile.custom_model_worker
-      args:
-        - worker_ver=${OASIS_API_VER}
     links:
      - celery-db
      - rabbit:myrabbit
@@ -85,6 +80,7 @@ services:
      - OASIS_CELERY_DB_NAME=celery
      - OASIS_CELERY_DB_PORT=3306
     volumes:
+     - ${OASIS_MEDIA_ROOT:-./conf.ini}:/home/worker/conf.ini
      - ${OASIS_MEDIA_ROOT:-./tmp}:/tmp/:rw
      - ${OASIS_MEDIA_ROOT:-./tests}:/var/oasis/tests/:rw
      - ${MODEL_DATA_ROOT}:/var/oasis/model_data/:rw

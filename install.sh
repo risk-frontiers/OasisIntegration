@@ -152,4 +152,11 @@ fi
 
 cd ${SCRIPT_DIR}
 # Run API, UI & Worker
-docker-compose -f docker-compose.yml --project-directory ${SCRIPT_DIR} up -d --build
+read -r -p "Do you want to build worker docker image locally? [y/N]: " response
+response=${response,,}    # to lower
+if [[ "$response" =~ ^(yes|y)$ ]]
+then
+    docker-compose -f docker-compose.yml --project-directory ${SCRIPT_DIR} up -d --build
+else
+    docker-compose -f docker-compose.nobuild.yml --project-directory ${SCRIPT_DIR} up -d --build
+fi
