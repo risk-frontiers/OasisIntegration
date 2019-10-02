@@ -203,6 +203,7 @@ def main():
             if 'demand_surge' in model_settings else DS.DEFAULT_DEMAND_SURGE,
             "InputScaling": model_settings['input_scaling']
             if 'input_scaling' in model_settings else DS.DEFAULT_INPUT_SCALING,
+            "ReportLossTIV": True if do_item_output else False,
         }
 
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
@@ -226,11 +227,11 @@ def main():
             if do_item_output:
                 logging.info("STARTED: Transforming sqlite losses into gulcalc item binary stream for event_batch "
                              + str(event_batch))
-                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_item, int(number_of_samples), 1)
+                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_item, int(number_of_samples), (2, 1))
             if do_coverage_output:
                 logging.info("STARTED: Transforming sqlite losses into gulcalc coverage binary stream for event_batch "
                              + str(event_batch))
-                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_coverage, int(number_of_samples), 2)
+                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_coverage, int(number_of_samples), (1, 2))
             logging.info("COMPLETED: Successfully generated losses as gulcalc binary stream for event batch "
                          + str(event_batch))
         except subprocess.CalledProcessError as e:
