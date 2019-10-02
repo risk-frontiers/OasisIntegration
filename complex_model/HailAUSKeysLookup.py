@@ -104,17 +104,17 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['address_type'] = EnumResolution.Address.value
 
         # ica zone
-        if geog_scheme == "ICA" and is_integer(geog_name) and 0 < geog_name < 50:
+        if geog_scheme == "ICA" and is_integer(geog_name) and 0 < int(geog_name) < 50:
             uni_exposure["lrg_id"] = int(geog_name)
             uni_exposure['lrg_type'] = EnumResolution.IcaZone.value
 
         # cresta
-        if geog_scheme == "CRO" and is_integer(geog_name) and 0 < geog_name < 50:
+        if geog_scheme == "CRO" and is_integer(geog_name) and 0 < int(geog_name) < 50:
             uni_exposure["zone_id"] = int(geog_name)
             uni_exposure['zone_type'] = EnumResolution.Cresta.value
 
         # postcode
-        if geog_scheme == "PC4" and is_integer(geog_name) and 0 < geog_name:
+        if geog_scheme == "PC4" and is_integer(geog_name) and 0 < int(geog_name):
             uni_exposure['med_id'] = int(geog_name)
             uni_exposure['med_type'] = EnumResolution.Postcode.value
 
