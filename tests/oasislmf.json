@@ -4,6 +4,6 @@
     "keys_data_path": "/var/oasis/model_data/keys_data",
     "model_version_file_path": "/var/oasis/complex_model/ModelVersion.csv",
     "model_data_path": "/var/oasis/model_data",
-    "source_exposure_file_path": "/var/oasis/tests/data/cresta_bcbi.csv",
+    "source_exposure_file_path": "/var/oasis/tests/expected/0_case/address_bcbi.csv",
     "ktools_alloc_rule_gul": 1
 }
