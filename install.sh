@@ -7,17 +7,19 @@ GLOBAL_LICENCE_PATH=""
 function compute_batch_count()
 {
     scale_factor=$1
-    batch_count=$(expr `awk '/MemTotal/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo` / ${scale_factor})
+    MEM_SIZE=$(awk '/MemTotal/ { printf "%.0f \n", $2/1024/1024 }' /proc/meminfo)
+    # batch_count=$(expr  ${MEM_SIZE}/ ${scale_factor})
+    # batch_count=$([ ${batch_count} -le 1 ] && echo 1 || echo ${batch_count})
+    # VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
+    # batch_count=$([ ${VCPU_COUNT} -le ${batch_count} ] && echo ${VCPU_COUNT} || echo ${batch_count})
+    batch_count=$([ ${MEM_SIZE} -le 128 ] && echo 2 || echo 4)
     echo ${batch_count}
-    batch_count=$([ ${batch_count} -le 1 ] && echo 1 || echo ${batch_count})
-    VCPU_COUNT=$(cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l)
-    batch_count=$([ ${VCPU_COUNT} -le ${batch_count} ] && echo ${VCPU_COUNT} || echo ${batch_count})
-    return ${batch_count}
 }
 
 
 function valid_licence()
 {
+    # TODO: this needs to be able to do some parsing of the license file rather that this simplistic check
     if [[ -f $1 ]]
     then
         return 0 # success
@@ -67,10 +69,10 @@ echo "Installation started. Please follow the following instruction and press EN
 # SCALE_FACTOR is ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
 MIN_SCALE_FACTOR=10
 MAX_SCALE_FACTOR=20
-min_batch_count=$(compute_batch_count ${MAX_SCALE_FACTOR})
+min_batch_count=1  # $(compute_batch_count ${MAX_SCALE_FACTOR})
 max_batch_count=$(compute_batch_count ${MIN_SCALE_FACTOR})
 
-batch_count=${min_batch_count}
+batch_count=${max_batch_count}
 read -p "Please set KTOOLS_BATCH_COUNT (ideally between ${min_batch_count} and ${max_batch_count}) [${batch_count}]: " batch_count_in
 re='^[0-9]+$'
 if [[ ! -z ${batch_count_in} ]] && [[ ${batch_count_in} =~ $re ]]
@@ -150,4 +152,11 @@ fi
 
 cd ${SCRIPT_DIR}
 # Run API, UI & Worker
-docker-compose -f docker-compose.yml --project-directory ${SCRIPT_DIR} up -d --build
+read -r -p "Do you want to build worker docker image locally? [N]: " response
+response=${response,,}    # to lower
+if [[ "$response" =~ ^(yes|y)$ ]]
+then
+    docker-compose -f docker-compose.yml --project-directory ${SCRIPT_DIR} up -d --build
+else
+    docker-compose -f docker-compose.nobuild.yml --project-directory ${SCRIPT_DIR} up -d --build
+fi

@@ -60,7 +60,7 @@ services:
    volumes:
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
   worker:
-    image: coreoasis/custom_model_worker:${MODEL_VER}
+    image: coreoasis/rf_hail:${INTEGRATION_VER}
     container_name: oasis_complex_model
     build:
       context: .
