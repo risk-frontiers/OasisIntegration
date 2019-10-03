@@ -152,7 +152,7 @@ fi
 
 cd ${SCRIPT_DIR}
 # Run API, UI & Worker
-read -r -p "Do you want to build worker docker image locally? [y/N]: " response
+read -r -p "Do you want to build worker docker image locally? [N]: " response
 response=${response,,}    # to lower
 if [[ "$response" =~ ^(yes|y)$ ]]
 then
