@@ -65,8 +65,33 @@ echo "
 
 echo "Installation started. Please follow the following instruction and press ENTER to use the suggested default values"
 
+# Initialisation: docker containers clean-up
+read -r -p "Do you want to update the Oasis framework to ${OASIS_API_VER}?
+This will remove existing containers so care should be taken on shared deployments. [N]: " response
+response=${response,,}    # to lower
+if [[ ! "$response" =~ ^(yes|y)$ ]]
+then
+    echo "Installation aborted. Exiting now!"
+    exit 1
+fi
+
+echo "Removing API and worker containers"
+docker rm -f oasis_api_server
+docker rm -f oasis_worker_monitor
+docker rm -f oasis_complex_model
+docker rm -f oasis_server_db
+docker rm -f oasis_celery_db
+docker rm -f oasis_rabbit
+docker rm -f oasis_flower
+docker rm -f oasis_user-interface_1
+docker rm -f oasisintegration_user-interface_1
+docker rm -f oasisui_proxy
+
+echo "Pruning obsolete images and networks"
+docker system prune -f
+
 # Customize BATCH_COUNT in conf.ini
-# SCALE_FACTOR is ideally between 10 and 16 and represents the consumption of memory by the RF .net engine
+# SCALE_FACTOR is ideally between 10 and 20 and represents the consumption of memory by the RF .net engine
 MIN_SCALE_FACTOR=10
 MAX_SCALE_FACTOR=20
 min_batch_count=1  # $(compute_batch_count ${MAX_SCALE_FACTOR})
@@ -159,4 +184,11 @@ then
     docker-compose -f docker-compose.yml --project-directory ${SCRIPT_DIR} up -d --build
 else
     docker-compose -f docker-compose.nobuild.yml --project-directory ${SCRIPT_DIR} up -d --build
+fi
+
+# Finalisation: docker image clean-up
+set -f -- $(docker images |grep 'rf_hail' | grep -v ${INTEGRATION_VER})
+if [[ ! -z $3 ]]
+then
+    docker rmi $3
 fi
