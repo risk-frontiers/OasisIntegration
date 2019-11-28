@@ -6,7 +6,7 @@
       "event_occurrence_id": "1",
       "static_motor": false,
       "demand_surge": false,
-      "leakage_factor": 1
+      "input_scaling": 0
     },
     "analysis_tag": 1,
     "gul_threshold": 0,
