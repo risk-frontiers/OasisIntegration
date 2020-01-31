@@ -76,6 +76,12 @@ class EnumResolution(Enum):
     BeeHive = 15
 
 
+class EnumAddressType(Enum):
+    GNAF = 1
+    LINZ = 2
+    GEOV = 3
+
+
 AU_BOUNDING_BOX = {
     'MIN': (112.0000000, -44.0000000),
     'MAX': (154.0000000, -10.0000000)
