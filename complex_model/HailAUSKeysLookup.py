@@ -34,16 +34,16 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         if model_name is not None and model_name.lower() in PerilSet.keys():
             self._peril_id = PerilSet[model_name.lower()]['OED_ID']
         self._postcode_lookup = None
+        self._supported_gnaf = []
         if self.keys_file_dir:
             self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
-
-        db = sqlite3.connect(os.path.abspath(
-            os.path.join(self.keys_file_dir, '..', 'riskfrontiersdbAUS_v2_6.db')))
-        cur = db.cursor()
-        cur.execute("select address_id from rf_address;")
-        res = cur.fetchall()
-        db.close()
-        self._supported_gnaf = set([x[0] for x in res])
+            db = sqlite3.connect(os.path.abspath(
+                os.path.join(self.keys_file_dir, '..', 'riskfrontiersdbAUS_v2_6.db')))
+            cur = db.cursor()
+            cur.execute("select address_id from rf_address;")
+            res = cur.fetchall()
+            db.close()
+            self._supported_gnaf = set([x[0] for x in res])
 
     def _get_lob_id(self, record):
         """This transforms the occupancy error_code into Multi-Peril Workbench specified line of business"""
