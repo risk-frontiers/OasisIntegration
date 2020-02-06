@@ -237,12 +237,14 @@ def main():
             logging.error("An error occurred while calling the Risk Frontiers .Net engine. Please look at " + log_fp +
                           " for more information regarding this issue")
 
-            raise OasisException(e)
-
             # if an exception occurred during in the .net engine then append log to worker.log for easy CI debug
             with open(os.path.join(DS.WORKER_LOG_DIRECTORY, "worker.log"), "a") as worker_log:
                 with open(log_fp, "r") as batch_log:
                     worker_log.write(batch_log.read())
+
+            raise OasisException(e)
+
+
 
 
 if __name__ == "__main__":
