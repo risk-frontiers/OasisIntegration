@@ -141,7 +141,6 @@ def main():
 
     with TemporaryDirectory() as working_dir:
         log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
-        # log_filename = "worker.log"
         log_fp = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
         if _DEBUG:
             working_dir = "/tmp/oasis_debug_{}".format(event_batch)
@@ -237,7 +236,13 @@ def main():
         except subprocess.CalledProcessError as e:
             logging.error("An error occurred while calling the Risk Frontiers .Net engine. Please look at " + log_fp +
                           " for more information regarding this issue")
+
             raise OasisException(e)
+
+            # if an exception occurred during in the .net engine then append log to worker.log for easy CI debug
+            with open(os.path.join(DS.WORKER_LOG_DIRECTORY, "worker.log"), "a") as worker_log:
+                with open(log_fp, "r") as batch_log:
+                    worker_log.write(batch_log.read())
 
 
 if __name__ == "__main__":
