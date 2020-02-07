@@ -1,2 +1,0 @@
-jupyter
-git+https://git@github.com/OasisLMF/OasisLMF.git@develop#egg=oasislmf

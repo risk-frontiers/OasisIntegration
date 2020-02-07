@@ -10,7 +10,7 @@ This script is used to transform oasis item and coverage files into cannonical r
 2. convert oasis items.csv and coverages.csv into u_item and u_coverage tables
 """
 
-DEFAULT_DB = "riskfrontiersdbAUS_v2_4_1.db"
+DEFAULT_DB = "riskfrontiersdbAUS_v2_6.db"
 
 RF_DEFAULT_ITEM_SQLITE_DEF = {
     "loc_id": {"datatype": "TEXT", "default": None},
@@ -157,6 +157,7 @@ ADDRESS_COLUMN_AUTOPOPULATE = [EnumResolution.Latitude, EnumResolution.Longitude
 
 def fill_resolution_from_address_id(con, cur):
     """This function populate rows with valid GNAF IDs (not lat/lon)
+    TODO: this will be handled by risk.platform in future. Only supports GNAF here.
 
     :param con: sqlite connection to the database containing the exposure table
     :param cur: sqlite cursor
@@ -165,7 +166,7 @@ def fill_resolution_from_address_id(con, cur):
                 SELECT a.loc_id, 
                 CASE WHEN a.latitude IS NULL OR a.latitude = 0 THEN b.latitude ELSE a.latitude END latitude,
                 CASE WHEN a.longitude IS NULL OR a.longitude = 0 THEN b.longitude ELSE a.longitude END longitude,
-                a.address_type,
+                1 address_type,
                 a.address_id,
                 a.best_res,
                 a.country_code,

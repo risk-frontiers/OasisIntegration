@@ -105,6 +105,7 @@ then
     batch_count=${batch_count_in}
 fi
 sed -i '/KTOOLS_BATCH_COUNT/c\KTOOLS_BATCH_COUNT = '${batch_count} conf.ini
+sed -i '/KTOOLS_NUM_PROCESSES/c\KTOOLS_NUM_PROCESSES = '${batch_count} conf.ini
 echo "Updated 'KTOOLS_BATCH_COUNT' in conf.ini to ${batch_count}"
 
 # set model data path

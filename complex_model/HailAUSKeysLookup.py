@@ -2,6 +2,8 @@ import itertools
 import json
 import numbers
 import math
+import sqlite3
+import os
 
 from oasislmf.utils.coverages import COVERAGE_TYPES
 from oasislmf.utils.status import OASIS_KEYS_STATUS
@@ -32,8 +34,16 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         if model_name is not None and model_name.lower() in PerilSet.keys():
             self._peril_id = PerilSet[model_name.lower()]['OED_ID']
         self._postcode_lookup = None
+        self._supported_gnaf = []
         if self.keys_file_dir:
             self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
+            db = sqlite3.connect(os.path.abspath(
+                os.path.join(self.keys_file_dir, '..', 'riskfrontiersdbAUS_v2_6.db')))
+            cur = db.cursor()
+            cur.execute("select address_id from rf_address;")
+            res = cur.fetchall()
+            db.close()
+            self._supported_gnaf = set([x[0] for x in res])
 
     def _get_lob_id(self, record):
         """This transforms the occupancy error_code into Multi-Peril Workbench specified line of business"""
@@ -71,8 +81,13 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :return: validated uni_exposure
         """
         # incomplete or missing geo-location field should fail
-        if not ((uni_exposure['latitude'] and uni_exposure['longitude']) or uni_exposure['address_id'] or
-                uni_exposure['med_id'] or uni_exposure['zone_id'] or uni_exposure['lrg_id']):
+        if not (
+                (uni_exposure['latitude'] and uni_exposure['longitude']) or
+                self.is_valid_address(uni_exposure['address_id'], uni_exposure['address_type']) or
+                uni_exposure['med_id'] or
+                uni_exposure['zone_id'] or
+                uni_exposure['lrg_id']
+        ):
             raise LocationLookupException("A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon "
                                           "or address coordinate", error_code=110)
 
@@ -101,7 +116,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # GNAF address
         if geog_scheme == "GNAF" and type(geog_name) == str:
             uni_exposure["address_id"] = geog_name
-            uni_exposure['address_type'] = EnumResolution.Address.value
+            uni_exposure['address_type'] = EnumAddressType.GNAF.value
 
         # ica zone
         if geog_scheme == "ICA" and is_integer(geog_name) and 0 < int(geog_name) < 50:
@@ -208,9 +223,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['best_res'] = EnumResolution.Cresta.value
         if uni_exposure['med_id'] is not None and uni_exposure['med_id'] > 0:
             uni_exposure['best_res'] = EnumResolution.Postcode.value
-        if uni_exposure['address_id'] is not None \
-                and isinstance(uni_exposure['address_id'], str) \
-                and len(uni_exposure['address_id']) == 14:
+        if uni_exposure['address_id'] is not None and \
+                self.is_valid_address(uni_exposure['address_id'], uni_exposure['address_type']):
             uni_exposure['best_res'] = EnumResolution.Address.value
         if uni_exposure['latitude'] is not None and uni_exposure['longitude'] is not None:
             uni_exposure['best_res'] = EnumResolution.LatLong.value
@@ -236,6 +250,11 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # uni_exposure['modelled'] # todo: when implementing flood, check that location is in flood zone
 
         return self._validate(uni_exposure, loc)
+
+    def is_valid_address(self, address_id, address_type):
+        if not address_type == EnumAddressType.GNAF.value:
+            return False
+        return address_id in self._supported_gnaf
 
     def process_location(self, loc, coverage_type):
         try:
