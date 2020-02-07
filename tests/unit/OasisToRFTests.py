@@ -36,12 +36,12 @@ class CreateDatabaseTests(RFBaseTestCase):
             con.close()
 
     def test_create_rf_input_address(self):
-        expected = ('1', -35.201133, 149.038656, 0, 'GAACT714845933', 0, 'au', 'ACT', 2, 39, 4, 161, 3, 39, 1, 2615,
+        expected = ('1', -35.201133, 149.038656, 1, 'GAACT714845933', 0, 'au', 'ACT', 2, 39, 4, 161, 3, 39, 1, 2615,
                     None, None, 1, '{"YearBuilt": 0}', None, 1)
         self.__create_rf_input_generic(expected, 'address')
 
     def test_cresta_rf_input_address_yearbuilt(self):
-        expected = ('1', -35.201133, 149.038656, 0, 'GAACT714845933', 0, 'au', 'ACT', 2, 39, 4, 161, 3, 39, 1, 2615,
+        expected = ('1', -35.201133, 149.038656, 1, 'GAACT714845933', 0, 'au', 'ACT', 2, 39, 4, 161, 3, 39, 1, 2615,
                     None, None, 1, '{"YearBuilt": 2019}', None, 1)
         self.__create_rf_input_generic(expected, 'address_yearbuilt')
 

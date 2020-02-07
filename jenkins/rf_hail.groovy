@@ -68,7 +68,7 @@ node {
             env.TEST_DATA_DIR    = model_test_dir
             env.MODEL_SUPPLIER   = model_supplier
             env.MODEL_VARIENT    = model_varient
-            env.MODEL_ID         = '7.0.0.0'
+            env.MODEL_ID         = '7.1.0.0'
             env.MODEL_MOUNT_TARGET = '/var/oasis/model_data'
             env.COMPOSE_PROJECT_NAME = UUID.randomUUID().toString().replaceAll("-","")
 

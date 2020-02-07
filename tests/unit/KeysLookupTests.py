@@ -97,8 +97,8 @@ class OEDGeogSchemeTests(RFBaseTestCase):
     def test_gnaf_geogscheme(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
         uni_exposure = lookup._add_geog_name({}, "GNAF", "GANSW123456789")
-        self.assertEqual(uni_exposure["address_id"], "GANSW123456789")
-        self.assertEqual(uni_exposure["address_type"], EnumResolution.Address.value)
+        self.assertEqual("GANSW123456789", uni_exposure["address_id"])
+        self.assertEqual(EnumAddressType.GNAF.value, uni_exposure["address_type"])
 
     def test_pc4_geogscheme(self):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
@@ -197,13 +197,14 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_level(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': "GNAF", 'geogname1': "GANSW123456789", 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
         self.assertEqual("GANSW123456789", exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(EnumResolution.Address.value, exposure['best_res'])
 
         self.assertFalse('latitude' in exposure and exposure['latitude'] is not None)
@@ -216,6 +217,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_level_fail(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': "GNAF", 'geogname1': "GANSW123456789", 'occupancycode': oc}
 
@@ -225,6 +227,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_state(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': "GNAF", 'geogname1': "GANSW123456789",
                        'areacode': 'au', 'occupancycode': oc}
@@ -232,7 +235,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
         self.assertEqual("GANSW123456789", exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(EnumResolution.Address.value, exposure['best_res'])
         self.assertEqual('au', exposure['state'])
 
@@ -245,6 +248,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_state_fail(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': "GNAF", 'geogname1': "GANSW123456789",
                        'areacode': 'au', 'occupancycode': oc}
@@ -286,6 +290,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_latlon(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
@@ -297,7 +302,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertEqual(latitude, exposure['latitude'])
         self.assertEqual(longitude, exposure['longitude'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(EnumResolution.LatLong.value, exposure['best_res'])
 
         self.assertFalse('med_id' in exposure and exposure['med_id'] is not None)
@@ -373,6 +378,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_postcode(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
                        'postalcode': 2000, 'occupancycode': oc}
@@ -380,7 +386,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(2000, exposure['med_id'])
         self.assertEqual(EnumResolution.Postcode.value, exposure['med_type'])
         self.assertEqual(EnumResolution.Address.value, exposure['best_res'])
@@ -504,6 +510,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_latlon_postcode_pc4(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
@@ -517,7 +524,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertEqual(latitude, exposure['latitude'])
         self.assertEqual(longitude, exposure['longitude'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(4000, exposure['med_id'])
         self.assertEqual(EnumResolution.Postcode.value, exposure['med_type'])
         self.assertEqual(EnumResolution.LatLong.value, exposure['best_res'])
@@ -569,6 +576,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_cresta(self, coverage, occupancy_code):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
                        'geogscheme2': 'CRO', 'geogname2': 49,
@@ -577,7 +585,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(49, exposure['zone_id'])
         self.assertEqual(EnumResolution.Cresta.value, exposure['zone_type'])
         self.assertEqual(EnumResolution.Address.value, exposure['best_res'])
@@ -668,6 +676,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_latlon_postcode_cresta(self, coverage, occupancy_code):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
@@ -682,7 +691,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertEqual(latitude, exposure['latitude'])
         self.assertEqual(longitude, exposure['longitude'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(49, exposure['zone_id'])
         self.assertEqual(EnumResolution.Cresta.value, exposure['zone_type'])
         self.assertEqual(4000, exposure['med_id'])
@@ -766,6 +775,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_ica_zone(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': 'GNAF', 'geogname1': 'GANSW123456789',
                        'geogscheme2': 'ICA', 'geogname2': 49, 'occupancycode': oc}
@@ -773,7 +783,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(49, exposure['lrg_id'])
         self.assertEqual(EnumResolution.IcaZone.value, exposure['lrg_type'])
         self.assertEqual(EnumResolution.Address.value, exposure['best_res'])
@@ -859,6 +869,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_latlon_postcode_ica_zone(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
@@ -872,7 +883,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertEqual(latitude, exposure['latitude'])
         self.assertEqual(longitude, exposure['longitude'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(49, exposure['lrg_id'])
         self.assertEqual(EnumResolution.IcaZone.value, exposure['lrg_type'])
         self.assertEqual(4000, exposure['med_id'])
@@ -898,6 +909,7 @@ class CreateUniExposureTests(RFBaseTestCase):
     @parameterized.expand(OK_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_latlon_postcode_cresta_ica_zone_state(self, coverage, oc):
         lookup = HailAUSKeysLookup(keys_data_directory=None, model_name="hailAus")
+        lookup._supported_gnaf = ['GANSW123456789']
         latitude = -33.8688
         longitude = 151.2093
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
@@ -912,7 +924,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertEqual(latitude, exposure['latitude'])
         self.assertEqual(longitude, exposure['longitude'])
         self.assertEqual('GANSW123456789', exposure['address_id'])
-        self.assertEqual(EnumResolution.Address.value, exposure['address_type'])
+        self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(49, exposure['lrg_id'])
         self.assertEqual(EnumResolution.IcaZone.value, exposure['lrg_type'])
         self.assertEqual(2, exposure['zone_id'])

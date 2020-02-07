@@ -33,7 +33,7 @@ def oed_to_rf_peril(oed_peril_id):
 
 
 PerilSet = {
-    "hailaus": {"OED_CODE": 8192, "OED_ID": "XHL", "COUNTRY": "au", "MAX_EVENT_INDEX": 134704731},
+    "hailaus": {"OED_CODE": 8192, "OED_ID": "XHL", "COUNTRY": "au", "MAX_EVENT_INDEX": 134416537},
     "quakeaus": {"OED_CODE": 1, "OED_ID": "QEQ", "COUNTRY": "au", "MAX_EVENT_INDEX": 1000252},
     "floodaus": {"OED_CODE": 512, "OED_ID": "ORF", "COUNTRY": "au", "MAX_EVENT_INDEX": 535000},
     "fireaus": {"OED_CODE": 262144, "OED_ID": "BBF", "COUNTRY": "au", "MAX_EVENT_INDEX": 291577},
@@ -74,6 +74,12 @@ class EnumResolution(Enum):
     VolcanoGrid = 13
     Country = 14
     BeeHive = 15
+
+
+class EnumAddressType(Enum):
+    GNAF = 1
+    LINZ = 2
+    GEOV = 3
 
 
 AU_BOUNDING_BOX = {

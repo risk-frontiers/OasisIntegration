@@ -75,7 +75,6 @@ retrieve the docker image from Oasis' docker image repository provided you have 
 ```
 git pull
 chmod +x reset.sh
-./reset.sh  # type y to start reset, then type y when asked about prunning, then type no when asked to delete data
 ./install.sh
 ``` 
 > If the Oasis UI does not work properly, you will need to kill all UI related containers from 1.0.2 (in particular, coreoasis/oasisui_app:1.0.2).
