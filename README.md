@@ -74,7 +74,7 @@ retrieve the docker image from Oasis' docker image repository provided you have 
 10) To update/upgrade the framework, do
 ```
 git pull
-chmod +x reset.sh
+chmod +x install.sh
 ./install.sh
 ``` 
 > If the Oasis UI does not work properly, you will need to kill all UI related containers from 1.0.2 (in particular, coreoasis/oasisui_app:1.0.2).
