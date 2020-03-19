@@ -120,12 +120,12 @@ def main():
         raise Exception('Complex items file does not exist')
 
     analysis_settings_json = json.load(open(analysis_settings_fp))
-    number_of_samples = analysis_settings_json['analysis_settings']['number_of_samples']
+    number_of_samples = analysis_settings_json['number_of_samples']
 
     # Access any model specific settings for the analysis
-    model_version_id = analysis_settings_json['analysis_settings']['model_version_id'].lower()
-    if 'model_settings' in analysis_settings_json['analysis_settings']:
-        model_settings = analysis_settings_json['analysis_settings']['model_settings']
+    model_version_id = analysis_settings_json['model_version_id'].lower()
+    if 'model_settings' in analysis_settings_json:
+        model_settings = analysis_settings_json['model_settings']
     else:
         model_settings = {}
 

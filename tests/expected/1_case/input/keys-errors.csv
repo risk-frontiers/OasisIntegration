@@ -1,29 +1,3 @@
 LocID,PerilID,CoverageTypeID,Status,Message
-1,XHL,1,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-1,XHL,3,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-1,XHL,4,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-1,XHL,2,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-2,XHL,1,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-2,XHL,3,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-2,XHL,4,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-2,XHL,2,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
+1,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
 3,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
-4,XHL,1,fail,If row has a motor construction code (between 5850 and 5950) then it cannot have cover other than Motor (TIV stored in OtherTIV)
-4,XHL,3,fail,If row has a motor construction code (between 5850 and 5950) then it cannot have cover other than Motor (TIV stored in OtherTIV)
-4,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
-5,XHL,1,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-5,XHL,3,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-5,XHL,4,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-5,XHL,2,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-6,XHL,1,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-6,XHL,3,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-6,XHL,4,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-6,XHL,2,fail,"A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon or address coordinate"
-7,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
-8,XHL,1,fail,If row has a motor construction code (between 5850 and 5950) then it cannot have cover other than Motor (TIV stored in OtherTIV)
-8,XHL,3,fail,If row has a motor construction code (between 5850 and 5950) then it cannot have cover other than Motor (TIV stored in OtherTIV)
-8,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
-9,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
-10,XHL,1,fail,If row has a motor construction code (between 5850 and 5950) then it cannot have cover other than Motor (TIV stored in OtherTIV)
-10,XHL,3,fail,If row has a motor construction code (between 5850 and 5950) then it cannot have cover other than Motor (TIV stored in OtherTIV)
-10,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
