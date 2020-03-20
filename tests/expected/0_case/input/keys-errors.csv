@@ -1,3 +1,1 @@
 LocID,PerilID,CoverageTypeID,Status,Message
-1,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business
-3,XHL,4,fail,Business Interruption losses are not currently modelled for Residential line of business

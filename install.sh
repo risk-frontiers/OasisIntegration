@@ -171,6 +171,9 @@ if [[ -d ${model_data} ]]
         then echo "Creating occurrence_1.bin"
         ln -s occurrence.bin occurrence_1.bin
     fi
+
+    cp -r ${SCRIPT_DIR}/meta-data ${model_data}
+    echo "Model settings copied to model data folder"
 else
     echo "The model data '${model_data}' does not exist"
     exit 1
