@@ -1,0 +1,33 @@
+{
+    "model_settings":{
+        "event_set":{
+            "name": "Event Set",
+            "desc": "Probabilistic only",
+            "default": "P",
+            "options": [
+                {"id": "P", "desc": "Probabilistic"}
+            ]
+        },
+        "event_occurrence_id":{
+            "name": "Occurrence Set",
+            "desc": "Occurrence selection",
+            "default": "1",
+            "options":[
+                {"id": "1", "desc": "Long Term"}
+            ]
+        },
+        "boolean_parameters":[
+            {"name": "static_motor", "desc": "Execute Risk Frontiers engine with Static Motor enabled", "default": false},
+            {"name": "demand_surge", "desc": "Execute Risk Frontiers engine with Demand Surge enabled", "default": false}
+        ],
+        "float_parameters": [
+            {"name": "input_scaling", "desc": "TIV input scaling", "default":  0.0, "min":  -1.0, "max": 1.0}
+        ]
+    },
+    "lookup_settings":{
+        "supported_perils": [
+            {"id": "XHL", "desc": "Single Peril: Hailstorm"},
+            {"id": "XX1", "desc": "Group Peril: Convective storm"}
+        ]
+    }
+}
