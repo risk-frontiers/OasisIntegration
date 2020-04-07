@@ -1,2 +1,0 @@
-item_id,coverage_id,model_data,group_id
-1,1,"{""lob_id"": 1, ""cover_id"": 1, ""loc_id"": ""1"", ""country_code"": ""au"", ""address_id"": null, ""address_type"": null, ""med_id"": null, ""med_type"": null, ""lrg_id"": 39, ""lrg_type"": 3, ""zone_id"": null, ""zone_type"": null, ""latitude"": null, ""longitude"": null, ""best_res"": 3, ""state"": null, ""props"": {""YearBuilt"": 0}}",1
