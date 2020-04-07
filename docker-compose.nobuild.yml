@@ -31,7 +31,6 @@ services:
      - STARTUP_RUN_MIGRATIONS=true
    volumes:
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
-     - ./meta-data/model_resource.json:/var/www/oasis/src/server/static/model_resource.json
   worker-monitor:
    image: coreoasis/api_server:${OASIS_API_VER}
    container_name: oasis_worker_monitor
@@ -79,6 +78,7 @@ services:
      - OASIS_CELERY_DB_USER=celery
      - OASIS_CELERY_DB_NAME=celery
      - OASIS_CELERY_DB_PORT=3306
+     - OASIS_MODEL_SETTINGS_FILE=/var/oasis/model_data/meta-data/model_settings.json
     volumes:
      - ${OASIS_MEDIA_ROOT:-./conf.ini}:/home/worker/conf.ini
      - ${OASIS_MEDIA_ROOT:-./tmp}:/tmp/:rw
