@@ -2,3 +2,4 @@
 oasislmf
 msgpack
 parameterized
+psutil
