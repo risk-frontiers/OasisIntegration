@@ -1,0 +1,31 @@
+{
+  "model_settings": {
+    "return_period_file": true,
+    "event_set": "P",
+    "event_occurrence_id": "1",
+    "static_motor": false,
+    "demand_surge": false,
+    "input_scaling": 0
+  },
+  "analysis_tag": 1,
+  "gul_threshold": 0,
+  "model_version_id": "HailAUS",
+  "module_supplier_id": "RiskFrontiers",
+  "number_of_samples": 1,
+  "prog_id": 1,
+  "source_tag": "oasis_localhost",
+  "gul_output": true,
+  "gul_summaries": [
+    {
+      "summarycalc": true,
+      "eltcalc": true,
+      "aalcalc": true,
+      "pltcalc": false,
+      "id": 1,
+      "oed_fields": [],
+      "lec_output": false
+    }
+  ],
+  "il_output": false,
+  "ri_output": false
+}
