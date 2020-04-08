@@ -4,6 +4,8 @@ import json
 import sys
 import logging
 import subprocess
+import psutil
+import platform
 
 import pandas as pd
 import complex_model.DefaultSettings as DS
@@ -16,7 +18,6 @@ from complex_model.Common import PerilSet
 from complex_model.RFException import FileNotFoundException
 from datetime import datetime
 import multiprocessing
-
 
 PY3K = sys.version_info >= (3, 0)
 
@@ -139,6 +140,18 @@ def main():
     with open(complex_items_fp) as p:
         items_pd = pd.read_csv(p)
 
+    # dump some system diagnostic into log
+    platform_name = platform.platform()
+    logging.info("Platform: {0}".format(platform_name))
+    mem_size = psutil.virtual_memory().total/2**30
+    logging.info("Memory: {:.0f} GiB".format(mem_size))
+    num_cores = multiprocessing.cpu_count()
+    logging.info("CPU count: {0}".format(num_cores))
+    os_hdd = psutil.disk_usage('/')
+    logging.info("OS Disk Total: {0:.0f} GiB, Free: {1:.0f} GiB".format(os_hdd.total/2**30, os_hdd.free/2**30))
+    tmp_hdd = psutil.disk_usage('/tmp')
+    logging.info("Tmp Disk Total: {0:.0f} GiB, Free: {1:.0f} GiB".format(tmp_hdd.total/2**30, tmp_hdd.free/2**30))
+
     with TemporaryDirectory() as working_dir:
         log_filename = "worker_{}_{}.log".format(event_batch, datetime.now().strftime("%Y%m%d%H%M%S"))
         log_fp = os.path.join(DS.WORKER_LOG_DIRECTORY, log_filename)
@@ -176,7 +189,6 @@ def main():
         # generate oasis_param.json
         complex_model_directory = args.complex_model_directory
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
-        num_cores = multiprocessing.cpu_count()
         max_parallelism = int(max(1, min(num_cores, num_cores/max_event_batch)))
         oasis_param = {
             "Peril": DS.DEFAULT_RF_PERIL_ID,

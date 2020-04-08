@@ -1,1 +1,6 @@
 ./model_data/
+tests/data/validation/
+tests/unit/data/keys_data/
+tests/unit/data/model_data/
+*.pyc
+.idea/

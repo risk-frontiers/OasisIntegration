@@ -4,6 +4,6 @@
     "lookup_package_dir": "/var/oasis/complex_model",
     "model_data_dir": "/var/oasis/model_data",
     "model_version_csv": "/var/oasis/complex_model/ModelVersion.csv",
-    "oed_location_csv": "/var/oasis/tests/expected/0_case/location_test.csv",
-    "ktools_num_processes": 2
+    "oed_location_csv": "/var/oasis/tests/expected/0_case/single_location.csv",
+    "ktools_num_processes": 1
 }
