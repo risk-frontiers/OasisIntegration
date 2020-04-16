@@ -1,5 +1,4 @@
-#-e git+https://git@github.com/OasisLMF/OasisLMF.git@184de5c8fb068dd02ea9fb49c7eadac02e28da1c#egg=oasislmf
-oasislmf
-msgpack
-parameterized
-psutil
+oasislmf==1.5.1
+msgpack==1.0.0
+parameterized==0.7.1
+psutil==5.7.0
