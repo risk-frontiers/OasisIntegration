@@ -8,12 +8,12 @@ RUN pip install -r /tmp/requirements.txt
 COPY ./conf.ini ./
 COPY ./set_ktools_num_processes.sh ./
 RUN chmod +x /home/worker/set_ktools_num_processes.sh
-COPY ./complex_model /var/oasis/complex_model
-COPY ./setup.py /var/oasis/
+COPY ./complex_model /home/worker/complex_model
+COPY ./setup.py /home/worker
 
-RUN chmod +x /var/oasis/complex_model/Risk.Platform.Core/Risk.Platform.Core
-ENV PYTHONPATH "${PYTHONPATH}:/var/oasis/complex_model"
+RUN chmod +x /home/worker/complex_model/Risk.Platform.Core/Risk.Platform.Core
+ENV PYTHONPATH "${PYTHONPATH}:/home/worker/complex_model"
 
-RUN pip install -e /var/oasis/
+RUN pip install -e /home/worker/
 
 #ENTRYPOINT /bin/bash
