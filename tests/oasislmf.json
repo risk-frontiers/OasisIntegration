@@ -2,9 +2,9 @@
     "analysis_settings_json": "analysis_settings.json",
     "ktools_num_processes": 1,
     "lookup_data_dir": "/var/oasis/model_data/keys_data",
-    "lookup_module_path": "/var/oasis/complex_model",
+    "lookup_module_path": "/home/worker/complex_model",
     "model_data_dir": "/var/oasis/model_data",
-    "model_version_csv": "/var/oasis/complex_model/ModelVersion.csv",
-    "oed_location_csv": "/var/oasis/tests/samples/location_small.csv",
-    "oed_account_csv": "/var/oasis/tests/samples/account_small.csv"
+    "model_version_csv": "/home/worker/complex_model/ModelVersion.csv",
+    "oed_location_csv": "/home/worker/tests/sample_loc_file.csv",
+    "oed_account_csv": "/home/worker/tests/sample_acc_file.csv"
 }

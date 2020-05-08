@@ -88,7 +88,7 @@ services:
      - RF_DEBUG_MODE=false
     volumes:
      - ${OASIS_MEDIA_ROOT:-./tmp}:/tmp/:rw
-     - ${OASIS_MEDIA_ROOT:-./tests}:/var/oasis/tests/:rw
+     - ${OASIS_MEDIA_ROOT:-./tests}:/home/worker/tests/:rw
      - ${MODEL_DATA_ROOT}:/var/oasis/model_data/:ro
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
   server-db:

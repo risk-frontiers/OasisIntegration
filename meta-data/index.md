@@ -59,8 +59,8 @@ if you have any queries or raise a ticket via the [Nasdaq customer portal][NCP]
    [VENDOR_MODEL_MM]: <vendor_model_methodolgy.pdf>
    [VENDOR_MODEL_OED_Spreadsheet]: <vendor_model_oed.xlsx>
    [WEBSITE]: <https://riskfrontiers.com/>
-   [OED_ACC]: <https://github.com/risk-frontiers/OasisIntegration/oed/samples/sample_acc_file.csv>
-   [OED_LOC]: <https://github.com/risk-frontiers/OasisIntegration/oed/samples/sample_loc_file.csv>
+   [OED_ACC]: <https://github.com/risk-frontiers/OasisIntegration/tests/sample_acc_file.csv>
+   [OED_LOC]: <https://github.com/risk-frontiers/OasisIntegration/tests/sample_loc_file.csv>
    [RiskFrontiers_GeogSchemes.xslx]: <https://github.com/risk-frontiers/OasisIntegration/oed/RiskFrontiers_GeogSchemes.xslx>
    [HailAUS7_2pager]: <https://riskfrontiers.com/rf2018/wp-content/uploads/2019/10/HailAUS-7.0-Model-2019.pdf>
    [NEWSLETTER]: <https://riskfrontiers.com/rf2018/wp-content/uploads/2019/03/RF_Newsletter_Volume18_Issue2_March_2019.pdf>

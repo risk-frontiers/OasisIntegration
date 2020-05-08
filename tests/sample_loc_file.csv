@@ -1,0 +1,14 @@
+PortNumber,AccNumber,LocNumber,CountryCode,Latitude,Longitude,PostalCode,GeogScheme1,GeogName1,GeogScheme2,GeogName2,GeogScheme3,GeogName3,GeogScheme4,GeogName4,OccupancyCode,ConstructionCode,YearBuilt,LocPerilsCovered,BuildingTIV,ContentsTIV,BITIV,OtherTIV,LocCurrency,LocUserDef1,LocUserDef2,LocUserDef3,LocUserDef4
+1,1,1,AU,-33.8568,151.2153,,,,,,,,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,1
+1,1,2,AU,-33.8568,151.2153,2000,,,,,,,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,2
+1,1,3,AU,,,2000,,,,,,,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,3
+1,2,1,AU,,,,GNAF,GANSW718642848,,,,,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,4
+1,2,2,AU,,,,,,PC4,2000,,,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,5
+1,2,3,AU,,,,,,,,ICA,41,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,6
+1,2,4,AU,,,,,,,,,,CRO,41,1100,,,XHL,1000000,,,,AUD,OK,1,1,7
+1,2,5,AU,,,,GNAF,GANSW718642848,PC4,2000,,,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,8
+1,2,6,AU,,,,GNAF,GANSW718642848,,,ICA,41,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,9
+1,2,7,AU,,,,GNAF,GANSW718642848,,,,,CRO,41,1100,,,XHL,1000000,,,,AUD,OK,1,1,10
+1,2,8,AU,,,,,,PC4,2000,ICA,41,,,1100,,,XHL,1000000,,,,AUD,OK,1,1,11
+1,2,9,AU,,,,,,PC4,2000,,,CRO,41,1100,,,XHL,1000000,,,,AUD,OK,1,1,12
+1,2,10,AU,,,,,,,,ICA,41,CRO,41,1100,,,XHL,1000000,,,,AUD,OK,1,1,13

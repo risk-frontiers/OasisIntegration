@@ -12,7 +12,7 @@ DEFAULT_RF_PERIL_ID = 2
 
 # oasis file paths
 WORKER_LOG_DIRECTORY = "/var/log/oasis"
-COMPLEX_MODEL_DIRECTORY = "/var/oasis/complex_model"
+COMPLEX_MODEL_DIRECTORY = "/home/worker/complex_model"
 MODEL_DATA_DIRECTORY = "/var/oasis/model_data"
 
 

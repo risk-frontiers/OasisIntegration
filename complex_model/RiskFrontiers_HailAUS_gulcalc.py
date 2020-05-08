@@ -256,8 +256,9 @@ def main():
                           " for more information regarding this issue")
 
             # if an exception occurred during in the .net engine then append log to worker.log for easy CI debug
-            with open(log_fp, "r") as batch_log:
-                logging.error(str(batch_log.read()))
+            if os.path.exists(log_fp):
+                with open(log_fp, "r") as batch_log:
+                    logging.error(str(batch_log.read()))
 
             raise OasisException(e)
 
