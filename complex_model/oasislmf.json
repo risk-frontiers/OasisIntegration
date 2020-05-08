@@ -1,6 +1,6 @@
 {
     "lookup_data_dir": "/var/oasis/model_data/keys_data",
-    "lookup_package_dir": "/var/oasis/complex_model",
+    "lookup_module_path": "/var/oasis/complex_model",
     "model_data_dir": "/var/oasis/model_data",
     "model_version_csv": "/var/oasis/complex_model/ModelVersion.csv"
 }

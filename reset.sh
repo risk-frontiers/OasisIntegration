@@ -1,6 +1,16 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+file_docker='docker/Dockerfile'
+file_versions='data_version.json'
+
+# Read and set versions
+env_vars=('OASIS_API_VER' 'OASIS_UI_VER' 'MODEL_VER' 'DATA_VER' 'INTEGRATION_VER' 'KTOOLS_VER' 'OASISLMF_VER')
+for var_name in "${env_vars[@]}"; do
+        var_value=$(cat ${file_versions} | grep ${var_name} | awk -F'"' '{ print $4 }')
+    export ${var_name}=${var_value}
+done
+
 read -r -p "Are you sure you want to reset this deployment?
 Note that running this script on a shared deployment (i.e. an Oasis deployment including multiple
 models from the same or different vendors) is **VERY DANGEROUS**. Please use this for technical testing of
@@ -19,6 +29,9 @@ then
     docker rm -f oasis_user-interface_1
     docker rm -f oasisintegration_user-interface_1
     docker rm -f oasisui_proxy
+
+    echo "Removing custom worker image"
+    docker rmi coreoasis/rf_hail:${INTEGRATION_VER}
 
     echo "Pruning obsolete images and networks"
     docker system prune
