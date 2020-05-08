@@ -1,0 +1,15 @@
+[
+  {
+    "name": "HailAUS7",
+    "supplier_id": "RiskFrontiers",
+    "model_id": "HailAUS",
+    "version_id": "7.1.0.0",
+    "peril": "XHL",
+    "worker_image": "worker/riskfrontiers/model_worker",
+    "worker_version": "1.7.0",
+    "uses_model_files": false,
+    "bucket_url": "",
+    "description": "Australia Hailstorm",
+    "keys_server_version": "1"
+  }
+]

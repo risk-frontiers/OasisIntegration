@@ -1,0 +1,26 @@
+[
+    {
+        "id": "locationThreshold",
+        "name": "Minimum Accepted Locations %",
+        "type": "text",
+        "defaultValue": "0",
+        "toolTipTitle": "Accepted Locations",
+        "toolTipText": "This input sets the minimum percentage of locations that need to be accepted by the model in order for an analysis to proceed to the execution stage. To ignore, set to 0."
+    },
+    {
+        "id": "lossThreshold",
+        "name": "Loss Threshold",
+        "type": "text",
+        "defaultValue": "0",
+        "toolTipTitle": "Loss Threshold",
+        "toolTipText": "Removes any ground-up loss items below the specified threshold to reduce output file size."
+    },
+    {
+        "id": "numberOfSamples",
+        "name": "Number of Samples",
+        "type": "text",
+        "defaultValue": "1",
+        "toolTipTitle": "Samples",
+        "toolTipText": "Number of Samples used in the Oasis LMF Monte Carlo Simulation"
+    }
+]

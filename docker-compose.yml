@@ -84,6 +84,8 @@ services:
      - OASIS_CELERY_DB_NAME=celery
      - OASIS_CELERY_DB_PORT=3306
      - OASIS_MODEL_SETTINGS_FILE=/var/oasis/model_data/meta-data/model_settings.json
+     - RF_MAX_DEGREE_OF_PARALLELISM=10
+     - RF_DEBUG_MODE=false
     volumes:
      - ${OASIS_MEDIA_ROOT:-./tmp}:/tmp/:rw
      - ${OASIS_MEDIA_ROOT:-./tests}:/var/oasis/tests/:rw

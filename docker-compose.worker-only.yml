@@ -1,0 +1,30 @@
+version: '3'
+services:
+  worker:
+    image: coreoasis/rf_hail:${INTEGRATION_VER}
+    container_name: oasis_complex_model
+    build:
+      context: .
+      dockerfile: Dockerfile.custom_model_worker
+      args:
+        - worker_ver=${OASIS_API_VER}
+    environment:
+     - OASIS_MODEL_SUPPLIER_ID=RiskFrontiers
+     - OASIS_MODEL_ID=HailAUS
+     - OASIS_MODEL_VERSION_ID=${MODEL_VER}
+     - OASIS_RABBIT_HOST=rabbit
+     - OASIS_RABBIT_PORT=5672
+     - OASIS_RABBIT_USER=rabbit
+     - OASIS_RABBIT_PASS=rabbit
+     - OASIS_CELERY_DB_ENGINE=db+mysql+pymysql
+     - OASIS_CELERY_DB_HOST=celery-db
+     - OASIS_CELERY_DB_PASS=password
+     - OASIS_CELERY_DB_USER=celery
+     - OASIS_CELERY_DB_NAME=celery
+     - OASIS_CELERY_DB_PORT=3306
+     - OASIS_MODEL_SETTINGS_FILE=/var/oasis/model_data/meta-data/model_settings.json
+    volumes:
+     - ${OASIS_MEDIA_ROOT:-./tmp}:/tmp/:rw
+     - ${OASIS_MEDIA_ROOT:-./tests}:/var/oasis/tests/:rw
+     - ${MODEL_DATA_ROOT}:/var/oasis/model_data/:rw
+     - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw

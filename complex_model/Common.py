@@ -110,7 +110,7 @@ def to_uni_scale_id(res):
     if res == EnumResolution.Catchment:
         return "catchment_id"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "error_code"  # todo: this is wrong
+        return "unsupported_id"
     raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
 
 
@@ -128,7 +128,7 @@ def to_uni_scale_type(res):
     if res == EnumResolution.Catchment:
         return "catchment_type"
     if res == EnumResolution.Code or res == EnumResolution.Shikuchoson or res == EnumResolution.Todofuken:
-        return "error_code"  # todo: wrong
+        return "unsupported_type"
     # raise ArgumentOutOfRangeException("Unknown resolution " + str(res))
     return None
 

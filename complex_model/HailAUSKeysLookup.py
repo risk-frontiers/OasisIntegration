@@ -4,12 +4,14 @@ import numbers
 import math
 import sqlite3
 import os
+from datetime import date
 
 from oasislmf.utils.coverages import COVERAGE_TYPES
 from oasislmf.utils.status import OASIS_KEYS_STATUS
 from oasislmf.model_preparation.lookup import OasisBaseKeysLookup
 
 from complex_model.PostcodeLookup import PostcodeLookup
+from complex_model.PostcodeDictionary import POSTCODE_CONCORDANCE, POSTCODE_SET, DELIVERY_POSTCODE_SET
 from complex_model.RFException import LocationLookupException, LocationNotModelledException
 from complex_model.Common import *
 from complex_model.DefaultSettings import COUNTRY_CODE
@@ -88,7 +90,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                 uni_exposure['zone_id'] or
                 uni_exposure['lrg_id']
         ):
-            raise LocationLookupException("A location must have at least a Cresta, Ica Zone, Postalcode, Lat/Lon "
+            raise LocationLookupException("A location must have at least a valid Cresta, Ica Zone, Postalcode, Lat/Lon "
                                           "or address coordinate", error_code=110)
 
         # Residential with BI coverage should fail
@@ -160,8 +162,9 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
         if uni_exposure['cover_id'] == EnumCover.Motor.value and not self._is_motor(loc):
-            # this case is where OtherTIV means IV for appurtenant structures
-            uni_exposure['cover_id'] = EnumCover.Building.value
+            # todo: should we map OtherTIV to appurtenant structures when not motor?
+            # uni_exposure['cover_id'] = EnumCover.Building.value
+            raise LocationLookupException("Only motor sum insured is supported in OtherTIV ")
 
         # OASIS: loc_id is uniquely generated for each location by oasis
         if 'loc_id' not in loc or loc['loc_id'] is None:
@@ -194,8 +197,11 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
                 pass
 
         # overwrite postcode from 'postalcode' field
-        if 'postalcode' in loc and is_integer(loc['postalcode']):
-            uni_exposure['med_id'] = int(loc['postalcode'])
+        if 'postalcode' in loc and self.is_valid_postcode(loc['postalcode']):
+            postcode = int(loc['postalcode'])
+            if postcode in DELIVERY_POSTCODE_SET:
+                postcode = POSTCODE_CONCORDANCE[str(postcode)]
+            uni_exposure['med_id'] = postcode
             uni_exposure['med_type'] = EnumResolution.Postcode.value
 
         # lat/lon
@@ -243,6 +249,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         # uni_exposure['fine_id']
         try:
             year_built = int(loc['yearbuilt'])
+            year_built = self.sanitize_year_built(year_built)
         except (ValueError, TypeError, KeyError):
             year_built = 0
         uni_exposure['props'] = {"YearBuilt": year_built}
@@ -251,10 +258,23 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
 
         return self._validate(uni_exposure, loc)
 
+    def sanitize_year_built(self, year):
+        if 0 < year <= date.today().year + 1:
+            return year
+        return 0
+
     def is_valid_address(self, address_id, address_type):
         if not address_type == EnumAddressType.GNAF.value:
             return False
         return address_id in self._supported_gnaf
+
+    def is_valid_postcode(self, postcode):
+        if not is_integer(postcode):
+            return False
+        postcode = int(postcode)
+        if postcode in POSTCODE_SET or postcode in DELIVERY_POSTCODE_SET:
+            return True
+        return False
 
     def process_location(self, loc, coverage_type):
         try:
