@@ -3,7 +3,7 @@ import os
 import json
 import sys
 import logging
-import subprocess
+from subprocess import Popen, PIPE
 import psutil
 import platform
 
@@ -11,11 +11,11 @@ import pandas as pd
 import complex_model.DefaultSettings as DS
 
 from backports.tempfile import TemporaryDirectory
-from oasislmf.utils.exceptions import OasisException
 from complex_model.OasisToRF import create_rf_input, DEFAULT_DB, get_connection_string, is_valid_model_data
 from complex_model.GulcalcToBin import gulcalc_sqlite_fp_to_bin
 from complex_model.Common import PerilSet
-from complex_model.RFException import FileNotFoundException
+from complex_model.RFException import FileNotFoundException, DotNetEngineException
+from complex_model.utils import is_bool, is_float
 from datetime import datetime
 import multiprocessing
 
@@ -196,6 +196,23 @@ def main():
         max_parallelism = int(max(1, min(num_cores, num_cores/max_event_batch)))
         if "RF_MAX_DEGREE_OF_PARALLELISM" in os.environ and isinstance(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"], int):
             max_parallelism = int(min(max_parallelism, max(1, int(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"]))))
+
+        individual_risk_mode = DS.DEFAULT_INDIVIDUAL_RISK_MODE
+        if 'individual_risk_mode' in model_settings and is_bool(model_settings['individual_risk_mode']):
+            individual_risk_mode = model_settings['individual_risk_mode']
+
+        static_motor = DS.DEFAULT_STATIC_MOTOR
+        if 'static_motor' in model_settings and is_bool(model_settings['static_motor']):
+            static_motor = model_settings['static_motor']
+
+        demand_surge = DS.DEFAULT_DEMAND_SURGE
+        if 'demand_surge' in model_settings and is_bool(model_settings['demand_surge']):
+            demand_surge = model_settings['demand_surge']
+
+        input_scaling = DS.DEFAULT_INPUT_SCALING
+        if 'input_scaling' in model_settings and is_float(model_settings['input_scaling']):
+            input_scaling = model_settings['input_scaling']
+
         oasis_param = {
             "Peril": DS.DEFAULT_RF_PERIL_ID,
             "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
@@ -212,14 +229,10 @@ def main():
             "NumRows": num_rows,
             "PortfolioId": DS.DEFAULT_PORTFOLIO_ID,
             "MaxDegreeOfParallelism": max_parallelism,
-            "IndividualRiskMode": model_settings['individual_risk_mode']
-            if 'individual_risk_mode' in model_settings else DS.DEFAULT_INDIVIDUAL_RISK_MODE,
-            "StaticMotor": model_settings['static_motor']
-            if 'static_motor' in model_settings else DS.DEFAULT_STATIC_MOTOR,
-            "DemandSurge": model_settings['demand_surge']
-            if 'demand_surge' in model_settings else DS.DEFAULT_DEMAND_SURGE,
-            "InputScaling": model_settings['input_scaling']
-            if 'input_scaling' in model_settings else DS.DEFAULT_INPUT_SCALING,
+            "IndividualRiskMode": bool(individual_risk_mode),
+            "StaticMotor": bool(static_motor),
+            "DemandSurge": bool(demand_surge),
+            "InputScaling": float(input_scaling),
             "ReportLossTIV": True if do_item_output else False,
         }
 
@@ -230,15 +243,19 @@ def main():
             logging.debug(json.dumps(oasis_param, indent=4, separators=(',', ':')))
 
         # call Risk.Platform.Core/Risk.Platform.Core.dll --oasis -c oasis_param.json [--debug] --log path_to_log.txt
-        cmd_str = "{} --oasis -c {} {} --log {}".format(os.path.join(oasis_param["ComplexModelDirectory"],
-                                                                     "Risk.Platform.Core", "Risk.Platform.Core"),
-                                                        oasis_param_fp,
-                                                        "--debug" if _DEBUG else "",
-                                                        log_fp)
+        dotnet_exe = os.path.join(oasis_param["ComplexModelDirectory"], "Risk.Platform.Core", "Risk.Platform.Core")
+        cmd_str = "{} --oasis -c {} {} --log {}".format(dotnet_exe, oasis_param, "--debug" if _DEBUG else "", log_fp)
+        process = Popen([dotnet_exe, '--oasis', '-c', oasis_param_fp, "--debug" if _DEBUG else "", "--log", log_fp],
+                        stdin=PIPE, stdout=PIPE, stderr=PIPE)
         try:
             logging.info("STARTED: Calling Risk Frontiers .Net engine: " + cmd_str + " for event batch "
                          + str(event_batch))
-            subprocess.check_call(cmd_str, stderr=subprocess.STDOUT, shell=True)
+            output, error = process.communicate()
+            logging.info("The .Net engine was executed and return code is " + str(process.returncode))
+            if not process.returncode == 0:
+                logging.error("An error occurred while calling the Risk Frontiers .Net engine: " + str(error))
+                raise DotNetEngineException(str(error), error_code=501)
+            logging.info(output)
             logging.info("COMPLETED: Loss database has been generated in " + temp_db_fp + " for event batch "
                          + str(event_batch))
             if do_item_output:
@@ -251,16 +268,15 @@ def main():
                 gulcalc_sqlite_fp_to_bin(temp_db_fp, output_coverage, int(number_of_samples), (1, 2))
             logging.info("COMPLETED: Successfully generated losses as gulcalc binary stream for event batch "
                          + str(event_batch))
-        except subprocess.CalledProcessError as e:
-            logging.error("An error occurred while calling the Risk Frontiers .Net engine. Please look at " + log_fp +
-                          " for more information regarding this issue")
+        except DotNetEngineException as e:
+            logging.error("Please look at " + log_fp + " for more information")
 
             # if an exception occurred during in the .net engine then append log to worker.log for easy CI debug
             if os.path.exists(log_fp):
                 with open(log_fp, "r") as batch_log:
                     logging.error(str(batch_log.read()))
 
-            raise OasisException(e)
+            raise e
 
 
 if __name__ == "__main__":

@@ -7,9 +7,12 @@
     "peril": "XHL",
     "worker_image": "worker/riskfrontiers/model_worker",
     "worker_version": "1.7.0",
-    "uses_model_files": false,
-    "bucket_url": "",
+    "uses_model_files": true,
+    "bucket_url": "s3://<insert-bucket-name>",
     "description": "Australia Hailstorm",
-    "keys_server_version": "1"
+    "keys_data_version": "",
+    "model_data_version": "1.2",
+    "countries": "AU",
+    "mandatory_fields": ""
   }
 ]

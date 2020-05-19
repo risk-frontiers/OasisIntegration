@@ -25,3 +25,8 @@ class ArgumentOutOfRangeException(RFBaseException):
 class FileNotFoundException(RFBaseException):
     def __init__(self, message, error_code=400):
         super(FileNotFoundException, self).__init__(message, error_code)
+
+
+class DotNetEngineException(RFBaseException):
+    def __init__(self, message, error_code=500):
+        super(DotNetEngineException, self).__init__(message, error_code)
