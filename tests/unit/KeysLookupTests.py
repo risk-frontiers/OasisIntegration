@@ -22,10 +22,17 @@ ALL_COVERAGES_ALL_OCCUPANCY = [[coverage, oc] for coverage, oc
 ALL_COVERAGES_COMMERCIAL_INDUSTRIAL = [[coverage, oc] for coverage, oc
                                        in itertools.product(ALL_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Commercial"],
                                                                             DEFAULT_OCCUPANCY_CODE["Industrial"]])]
+OK_COVERAGES_COMMERCIAL_INDUSTRIAL = [[coverage, oc] for coverage, oc
+                                      in itertools.product(NON_MOTOR_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Commercial"],
+                                                                                 DEFAULT_OCCUPANCY_CODE["Industrial"]])]
+
 NON_BI_COVERAGES_RESIDENTIAL = [[coverage, oc] for coverage, oc
                                 in itertools.product(NON_BI_COVERAGES, [DEFAULT_OCCUPANCY_CODE["Residential"]])]
 
-OK_COVERAGES_OCCUPANCY_COMBINATION = ALL_COVERAGES_COMMERCIAL_INDUSTRIAL + NON_BI_COVERAGES_RESIDENTIAL
+OK_NON_BI_COVERAGES_RESIDENTIAL = [[coverage, oc] for coverage, oc
+                                   in itertools.product(BUILDING_CONTENTS, [DEFAULT_OCCUPANCY_CODE["Residential"]])]
+
+OK_COVERAGES_OCCUPANCY_COMBINATION = OK_COVERAGES_COMMERCIAL_INDUSTRIAL + OK_NON_BI_COVERAGES_RESIDENTIAL
 
 FAIL_COVERAGES_OCCUPANCY_COMBINATION = [[COVERAGE_TYPES["bi"], DEFAULT_OCCUPANCY_CODE["Residential"]]]
 
@@ -966,8 +973,7 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'postalcode': 2000}
 
         loc = copy.deepcopy(default_loc)
-        exposure = lookup.create_uni_exposure(loc, COVERAGE_TYPES['other']['id'])
-        self.assertEqual(EnumCover.Building.value, exposure['cover_id'])
+        self.assertRaisesWithErrorCode(152, lookup.create_uni_exposure, loc, COVERAGE_TYPES['other']['id'])
 
     @parameterized.expand([[coverage_oc[0], cc, coverage_oc[1]] for cc, coverage_oc in
                            itertools.product(range(5850, 5950), OK_NON_MOTOR_COVERAGES_OCCUPANCY_COMBINATION)])

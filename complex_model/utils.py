@@ -16,3 +16,10 @@ def is_float(obj):
         return True
     except ValueError:
         return False
+
+
+def is_bool(obj):
+    try:
+        return isinstance(obj, bool)
+    except ValueError:
+        return False

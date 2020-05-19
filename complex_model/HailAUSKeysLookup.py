@@ -158,19 +158,19 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             raise LocationLookupException('Location not covered for ' + str(oed_to_rf_peril(self._peril_id)),
                                           error_code=122)
 
+        # OASIS: loc_id is uniquely generated for each location by oasis
+        if 'loc_id' not in loc or loc['loc_id'] is None:
+            raise LocationLookupException("Location ID is required but is missing",
+                                          error_code=102)
+
         uni_exposure = dict()
+        uni_exposure['loc_id'] = str(loc['loc_id'])
         uni_exposure['lob_id'] = self._get_lob_id(loc)
         uni_exposure['cover_id'] = oed_to_rf_coverage(coverage_type)
         if uni_exposure['cover_id'] == EnumCover.Motor.value and not self._is_motor(loc):
             # todo: should we map OtherTIV to appurtenant structures when not motor?
             # uni_exposure['cover_id'] = EnumCover.Building.value
-            raise LocationLookupException("Only motor sum insured is supported in OtherTIV ")
-
-        # OASIS: loc_id is uniquely generated for each location by oasis
-        if 'loc_id' not in loc or loc['loc_id'] is None:
-            raise LocationLookupException("Location ID is required but is missing",
-                                          error_code=102)
-        uni_exposure['loc_id'] = str(loc['loc_id'])
+            raise LocationLookupException("Only motor sum insured is supported in OtherTIV ", error_code=152)
 
         # OED: country error_code is also required but we'll default to AU if missing
         try:
