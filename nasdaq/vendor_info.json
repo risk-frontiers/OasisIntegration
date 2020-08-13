@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Risk Frontiers",
+    "description": "Risk Frontiers probabilistic hail model is a high resolution hailstorm model for the Australian continent. It comprises a large catalogue of stochastic events built form historical storm data sets and state-of-the-art modelling methodology, and a fine grained vulnerability module that also captures specialised dynamic motor vehicle.",
+    "supplier_id": "RiskFrontiers",
+    "url": "https://riskfrontiers.com/",
+    "logo_name": "RiskFrontiers.png"
+  }
+]

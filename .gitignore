@@ -3,3 +3,12 @@
 tests/data/validation/
 tests/unit/data/keys_data/
 *.pyc
+nasdaq/HailAUS/7.1.0.0/model_data
+images/
+nasdaq/HailAUS/7.1.0.0/test_files/outputs/
+nasdaq/HailAUS/7.1.0.0/test_files/AU_HL_test2_100k_loc.csv
+nasdaq/HailAUS/7.1.0.0/test_files/AU_HL_test2_acc.csv
+nasdaq/HailAUS/7.1.0.0/test_files/AU_HL_test3_1m_loc.csv
+nasdaq/HailAUS/7.1.0.0/test_files/AU_HL_test3_acc.csv
+tests/data/other/AU_HL_test4_300k_loc.csv
+tests/data/other/AU_HL_test4_acc.csv
