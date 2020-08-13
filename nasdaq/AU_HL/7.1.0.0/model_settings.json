@@ -29,6 +29,5 @@
             {"id": "XHL", "desc": "Single Peril: Hailstorm"},
             {"id": "XX1", "desc": "Group Peril: Convective storm"}
         ]
-    },
-    "data_settings": {}
+    }
 }

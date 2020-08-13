@@ -1,1 +1,2 @@
 LocID,PerilID,CoverageTypeID,Status,Message
+1,XHL,2,fail,Only motor sum insured is supported in OtherTIV 

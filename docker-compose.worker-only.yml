@@ -25,6 +25,6 @@ services:
      - OASIS_MODEL_SETTINGS_FILE=/var/oasis/model_data/meta-data/model_settings.json
     volumes:
      - ${OASIS_MEDIA_ROOT:-./tmp}:/tmp/:rw
-     - ${OASIS_MEDIA_ROOT:-./tests}:/var/oasis/tests/:rw
+     - ${OASIS_MEDIA_ROOT:-./tests}:/home/worker/tests/:rw
      - ${MODEL_DATA_ROOT}:/var/oasis/model_data/:rw
      - ${OASIS_MEDIA_ROOT:-./docker-shared-fs}:/shared-fs:rw
