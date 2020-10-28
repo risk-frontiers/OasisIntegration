@@ -1,9 +1,9 @@
 {
-    "OASIS_API_VER":"1.9.0",
+    "OASIS_API_VER":"1.11.1",
     "OASIS_UI_VER":"1.8.0",
     "MODEL_VER":"7.1.0.0",
     "DATA_VER":"1.2",
-    "INTEGRATION_VER":"1.9.0",
-    "KTOOLS_VER":"3.3.3",
-    "OASISLMF_VER": "1.9.0"
+    "INTEGRATION_VER":"1.11.1",
+    "KTOOLS_VER":"3.3.7",
+    "OASISLMF_VER": "1.11.1"
 }

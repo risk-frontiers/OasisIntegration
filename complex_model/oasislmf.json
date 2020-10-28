@@ -2,5 +2,11 @@
     "lookup_data_dir": "/var/oasis/model_data/keys_data",
     "lookup_module_path": "/home/worker/complex_model",
     "model_data_dir": "/var/oasis/model_data",
-    "model_version_csv": "/home/worker/complex_model/ModelVersion.csv"
+    "model_version_csv": "/home/worker/complex_model/ModelVersion.csv",
+    "ktools_num_processes": 4,
+    "ktools_alloc_rule_gul": 0,
+    "ktools_alloc_rule_il": 2,
+    "ktools_alloc_rule_ri": 3,
+    "ktools_error_guard": false,
+    "disable_exposure_summary": true
 }

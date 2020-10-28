@@ -78,7 +78,7 @@ fi
 echo "Removing API and worker containers"
 docker rm -f oasis_api_server
 docker rm -f oasis_worker_monitor
-docker rm -f oasis_complex_model
+docker rm -f hailaus_complex_model
 docker rm -f oasis_server_db
 docker rm -f oasis_celery_db
 docker rm -f oasis_rabbit
@@ -98,15 +98,14 @@ min_batch_count=1  # $(compute_batch_count ${MAX_SCALE_FACTOR})
 max_batch_count=$(compute_batch_count ${MIN_SCALE_FACTOR})
 
 batch_count=${max_batch_count}
-read -p "Please set KTOOLS_BATCH_COUNT (ideally between ${min_batch_count} and ${max_batch_count}) [${batch_count}]: " batch_count_in
+read -p "Please set KTOOLS_NUM_PROCESSES (ideally between ${min_batch_count} and ${max_batch_count}) [${batch_count}]: " batch_count_in
 re='^[0-9]+$'
 if [[ ! -z ${batch_count_in} ]] && [[ ${batch_count_in} =~ $re ]]
 then
     batch_count=${batch_count_in}
 fi
-sed -i '/KTOOLS_BATCH_COUNT/c\KTOOLS_BATCH_COUNT = '${batch_count} conf.ini
-sed -i '/KTOOLS_NUM_PROCESSES/c\KTOOLS_NUM_PROCESSES = '${batch_count} conf.ini
-echo "Updated 'KTOOLS_BATCH_COUNT' in conf.ini to ${batch_count}"
+sed -i '/ktools_num_processes/c\    "ktools_num_processes": '${batch_count}',' ./complex_model/oasislmf.json
+echo "Updated 'KTOOLS_NUM_PROCESSES' in complex_model/oasislmf.json to ${batch_count}"
 
 # set model data path
 model_data=${SCRIPT_DIR}/model_data
@@ -144,7 +143,7 @@ if [[ -d ${model_data} ]]
         exit 1
     fi
 
-    cp ${licence_path} /tmp/licence.txt; cp /tmp/licence.txt ${model_data}; rm /tmp/licence.txt
+    # cp ${licence_path} /tmp/licence.txt; cp /tmp/licence.txt ${model_data}; rm /tmp/licence.txt
     echo "Licence file installed in ${model_data}"
 
     # shallow verify model_data
@@ -172,8 +171,8 @@ if [[ -d ${model_data} ]]
         ln -s occurrence.bin occurrence_1.bin
     fi
 
-    cp -r ${SCRIPT_DIR}/meta-data ${model_data}
-    echo "Model settings copied to model data folder"
+    # cp -r ${SCRIPT_DIR}/meta-data ${model_data}
+    # echo "Model settings copied to model data folder"
 else
     echo "The model data '${model_data}' does not exist"
     exit 1

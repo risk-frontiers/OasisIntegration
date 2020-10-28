@@ -14,7 +14,7 @@ from complex_model.PostcodeLookup import PostcodeLookup
 from complex_model.PostcodeDictionary import POSTCODE_CONCORDANCE, POSTCODE_SET, DELIVERY_POSTCODE_SET
 from complex_model.RFException import LocationLookupException, LocationNotModelledException
 from complex_model.Common import *
-from complex_model.DefaultSettings import COUNTRY_CODE
+from complex_model.DefaultSettings import COUNTRY_CODE, BASE_DB_NAME
 from complex_model.utils import is_integer, is_float
 
 
@@ -40,7 +40,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         if self.keys_file_dir:
             self._postcode_lookup = PostcodeLookup(keys_file_dir=self.keys_file_dir)
             db = sqlite3.connect(os.path.abspath(
-                os.path.join(self.keys_file_dir, '..', 'riskfrontiersdbAUS_v2_6.db')))
+                os.path.join(self.keys_file_dir, '..', BASE_DB_NAME)))
             cur = db.cursor()
             cur.execute("select address_id from rf_address;")
             res = cur.fetchall()
@@ -116,7 +116,7 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
         :return: the uni exposure object where the respective geo-location has been set
         """
         # GNAF address
-        if geog_scheme == "GNAF" and type(geog_name) == str:
+        if geog_scheme == "GNAF" and type(geog_name) == str and not geog_name == "":
             uni_exposure["address_id"] = geog_name
             uni_exposure['address_type'] = EnumAddressType.GNAF.value
 
