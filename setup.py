@@ -7,8 +7,8 @@ setup(
     version='1.2.0',
     entry_points={
         'console_scripts': [
-            'complex_itemtobin=oasislmf.model_execution.complex_items_to_bin:main',
-            'complex_itemtocsv=oasislmf.model_execution.complex_items_to_csv:main',
+            'complex_itemtobin=oasislmf.execution.complex_items_to_bin:main',
+            'complex_itemtocsv=oasislmf.execution.complex_items_to_csv:main',
             'RiskFrontiers_HailAUS_gulcalc=complex_model.RiskFrontiers_HailAUS_gulcalc:main'
         ]
     }

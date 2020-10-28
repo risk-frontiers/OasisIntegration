@@ -9,4 +9,4 @@ then
         echo '  ./set_ktools_num_processes 2'
         exit 1
 fi
-sed -i '/KTOOLS_NUM_PROCESSES/c\KTOOLS_NUM_PROCESSES = '$1 /home/worker/conf.ini
+sed -i '/ktools_num_processes/c\    "ktools_num_processes": '$1',' /home/worker/complex_model/oasislmf.json

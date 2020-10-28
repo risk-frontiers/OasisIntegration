@@ -63,7 +63,7 @@ docker login
 chmod +x install.sh
 ./install.sh
 ```
->You will be asked to confirm the value for `KTOOLS_BATCH_COUNT`, model data path and license file. You can directly 
+>You will be asked to confirm the value for `KTOOLS_NUM_PROCESSES`, model data path and license file. You can directly 
 retrieve the docker image from Oasis' docker image repository provided you have run `docker login` above.
 9) Access via the accessible IP (Public IP for Azure) using the default `user: admin` `pass: password` 
 * [OasisUI Interface](http://localhost:8080/) - *localhost:8080* 
@@ -77,7 +77,6 @@ git pull
 chmod +x install.sh
 ./install.sh
 ``` 
-> If the Oasis UI does not work properly, you will need to kill all UI related containers from 1.0.2 (in particular, coreoasis/oasisui_app:1.0.2).
 ### Notes: 
 * A valid Risk Frontiers license is required to run the integrated model. Please contact 
 [Risk Frontiers](mailto:info@riskfrontiers.com) for more information. 

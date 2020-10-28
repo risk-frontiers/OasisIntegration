@@ -1,6 +1,6 @@
 {
     "analysis_settings_json": "analysis_settings.json",
-    "ktools_num_processes": 1,
+    "ktools_num_processes": 2,
     "lookup_data_dir": "/var/oasis/model_data/keys_data",
     "lookup_module_path": "/home/worker/complex_model",
     "model_data_dir": "/var/oasis/model_data",

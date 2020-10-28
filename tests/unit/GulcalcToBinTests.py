@@ -9,7 +9,7 @@ import pandas as pd
 import itertools
 
 from tests.unit.RFBaseTest import RFBaseTestCase
-from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin, SUPPORTED_GUL_STREAMS
+from complex_model.GulcalcToBin import gulcalc_sqlite_to_bin, SUPPORTED_GUL_STREAMS, gulcalc_create_header
 from complex_model.Common import ArgumentOutOfRangeException
 
 
@@ -18,20 +18,20 @@ TEST_INPUT_DIR = os.path.join(TEST_DIR, 'data', 'input', 'u_lossoasis_r254')
 TEST_MODEL_DATA_DIR = os.path.join(TEST_DIR, 'data', 'model_data')
 
 
-def load_csv(con, csv_file, reg_col='coverage_id'):
+def load_csv(con, csv_file, reg_col='item_id'):
     """Loads a gul csv output from oasis gulcalc (or complex model gulcalc) into the sqlite table u_lossoasis_r254"""
     cur = con.cursor()
-    cur.execute("CREATE TABLE u_lossoasis_r254 (event_id INTEGER, reg_id INTEGER, sample_id INTEGER, groundup REAL);")
+    cur.execute("CREATE TABLE oasis_loss (event_id INTEGER, loc_id INTEGER, sample_id INTEGER, loss REAL);")
 
     with open(csv_file, 'r') as fin:
         dr = csv.DictReader(fin)
         to_db = [(int(i['event_id']), int(i[reg_col]), int(i['sidx']), float(i['loss'])) for i in dr]
 
-    cur.executemany("INSERT INTO u_lossoasis_r254 (event_id, reg_id, sample_id, groundup) VALUES (?, ?, ?, ?);", to_db)
+    cur.executemany("INSERT INTO oasis_loss (event_id, loc_id, sample_id, loss) VALUES (?, ?, ?, ?);", to_db)
     con.commit()
 
 
-def recreate_csv_from_bin(working_dir, file_fp, stream_name="coverage"):
+def recreate_csv_from_bin(working_dir, file_fp, stream_name="loss"):
     """This recreates an in memory sqlite database from an oasis gul csv output"""
     gul_fp = os.path.join(working_dir, "gul.bin")
 
@@ -43,7 +43,8 @@ def recreate_csv_from_bin(working_dir, file_fp, stream_name="coverage"):
     else:
         raise ArgumentOutOfRangeException("Unsupported stream: " + stream_name)
     with open(gul_fp, 'wb') as gul_file:
-        gulcalc_sqlite_to_bin(con, gul_file, 1, stream_id)
+        gulcalc_create_header(gul_file, 1, stream_id)
+        gulcalc_sqlite_to_bin(con, gul_file, False)
     con.close()
 
     gul_csv_fp = os.path.join(working_dir, "gul.csv")
@@ -74,15 +75,16 @@ class GulcalcToBinTests(RFBaseTestCase):
             gul_csv_fp = recreate_csv_from_bin(working_dir, file_fp, stream_type)
 
             expected = pd.read_csv(gul_csv_fp)
-            last_sid = -2
+            last_sid = -4
+            last_loc_batch = 0
             for _, row in expected.iterrows():
+                current_loc_batch = row["coverage_id"] if "coverage_id" in row else row["item_id"]
+                if last_loc_batch == 0:
+                    last_loc_batch = current_loc_batch
                 sidx = row["sidx"]
-                if sidx == -1:
-                    self.assertNotEqual(-1, last_sid)
-                elif sidx < 0:
-                    self.assertLessEqual(sidx, last_sid)
-                else:
-                    self.assertLessEqual(last_sid, sidx)
+                if last_loc_batch != current_loc_batch:
+                    last_sid = -4
+                self.assertLess(last_sid, sidx)
                 last_sid = sidx
 
     @parameterized.expand([[i, s] for i, s in itertools.product(range(0, 4), list(SUPPORTED_GUL_STREAMS.keys()))])

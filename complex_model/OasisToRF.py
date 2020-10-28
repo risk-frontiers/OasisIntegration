@@ -139,10 +139,8 @@ def create_rf_input(item_source, coverage_source, sqlite_fp, risk_platform_data)
     fill_resolution_from_lat_long(con, cur)
 
     # post processing ...
-    delete_temp_exposure = "DROP TABLE u_exposure_tmp;"
     ofl_exposure_index = "CREATE INDEX ofl_exposure_index ON u_exposure (origin_file_line);"
     ofl_coverage_index = "CREATE INDEX ofl_coverage_index ON u_coverage (origin_file_line);"
-    cur.execute(delete_temp_exposure)
     cur.execute(ofl_exposure_index)
     cur.execute(ofl_coverage_index)
     con.commit()
@@ -169,7 +167,7 @@ def fill_resolution_from_address_id(con, cur):
                 1 address_type,
                 a.address_id,
                 a.best_res,
-                a.country_code,
+                lower(a.country_code) country_code,
                 CASE WHEN a.[state] IS NULL THEN b.[state] ELSE a.[state] END [state],
                 2 zone_type,
                 CASE WHEN a.zone_id IS NULL THEN b.cresta ELSE a.zone_id END zone_id,		
@@ -186,9 +184,9 @@ def fill_resolution_from_address_id(con, cur):
                 a.modelled,
                 a.origin_file_line
         FROM u_exposure_tmp a INNER JOIN rf_address b ON a.address_id = b.address_id 
-        WHERE NOT a.address_id IS NULL AND country_code = 'au' AND 
+        WHERE NOT a.address_id IS NULL AND lower(country_code) = 'au' AND 
             (a.latitude = 0 OR a.latitude IS NULL OR a.longitude = 0 or a.longitude IS NULL)
-        UNION ALL SELECT * FROM u_exposure_tmp WHERE NOT (NOT address_id IS NULL AND country_code = 'au' AND 
+        UNION ALL SELECT * FROM u_exposure_tmp WHERE NOT (NOT address_id IS NULL AND lower(country_code) = 'au' AND 
             (latitude = 0 OR latitude IS NULL OR longitude = 0 or longitude IS NULL));"""
     cur.execute(address_fill_sql)
     con.commit()

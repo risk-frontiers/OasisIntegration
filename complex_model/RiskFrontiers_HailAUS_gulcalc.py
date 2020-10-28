@@ -33,14 +33,13 @@ else:
         msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
     output_stdout = sys.stdout
 
-_DEBUG = False
+_DEBUG = DS.RF_DEBUG_MODE
 if "RF_DEBUG_MODE" in os.environ:
     if isinstance(os.environ["RF_DEBUG_MODE"], str) and os.environ["RF_DEBUG_MODE"].lower() == "true":
         _DEBUG = True
 
-_WORKER_LOG_FILE = "/var/log/oasis/worker.log"
 logging.basicConfig(level=logging.DEBUG if _DEBUG else logging.INFO,
-                    filename=_WORKER_LOG_FILE,
+                    filename=DS.WORKER_LOG_FILE,
                     format='[%(asctime)s: %(levelname)s/%(filename)s] %(message)s')
 
 
@@ -193,10 +192,18 @@ def main():
         # generate oasis_param.json
         complex_model_directory = args.complex_model_directory
         max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
+
+        # performance parameters
         max_parallelism = int(max(1, min(num_cores, num_cores/max_event_batch)))
         if "RF_MAX_DEGREE_OF_PARALLELISM" in os.environ and isinstance(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"], int):
             max_parallelism = int(min(max_parallelism, max(1, int(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"]))))
 
+        batch_exposure_size = DS.DEFAULT_BATCH_EXPOSURE_SIZE
+        if "RF_BATCH_EXPOSURE_SIZE" in os.environ and isinstance(os.environ["RF_BATCH_EXPOSURE_SIZE"], int):
+            batch_exposure_size = int(os.environ["RF_BATCH_EXPOSURE_SIZE"])
+        logging.info("RF_BACTH_EXPOSURE_SIZE: " + str(batch_exposure_size))
+
+        # analysis parameters
         individual_risk_mode = DS.DEFAULT_INDIVIDUAL_RISK_MODE
         if 'individual_risk_mode' in model_settings and is_bool(model_settings['individual_risk_mode']):
             individual_risk_mode = model_settings['individual_risk_mode']
@@ -211,7 +218,9 @@ def main():
 
         input_scaling = DS.DEFAULT_INPUT_SCALING
         if 'input_scaling' in model_settings and is_float(model_settings['input_scaling']):
-            input_scaling = model_settings['input_scaling']
+            input_scaling = float(model_settings['input_scaling'])
+        input_scaling = max(-1.0, input_scaling)
+        input_scaling = min(input_scaling, 1.0)
 
         oasis_param = {
             "Peril": DS.DEFAULT_RF_PERIL_ID,
@@ -234,6 +243,7 @@ def main():
             "DemandSurge": bool(demand_surge),
             "InputScaling": float(input_scaling),
             "ReportLossTIV": True if do_item_output else False,
+            "BatchExposureSize": batch_exposure_size,
         }
 
         oasis_param_fp = os.path.join(working_dir, "oasis_param.json")
@@ -252,22 +262,27 @@ def main():
                          + str(event_batch))
             output, error = process.communicate()
             logging.info("The .Net engine was executed and return code is " + str(process.returncode))
+
             if not process.returncode == 0:
                 logging.error("An error occurred while calling the Risk Frontiers .Net engine: " + str(error))
                 raise DotNetEngineException(str(error), error_code=501)
-            logging.info(output)
+
+            if output and not output == b'':
+                logging.info(".Net engine output: " + output)
             logging.info("COMPLETED: Loss database has been generated in " + temp_db_fp + " for event batch "
                          + str(event_batch))
+
             if do_item_output:
-                logging.info("STARTED: Transforming sqlite losses into gulcalc item binary stream for event_batch "
-                             + str(event_batch))
-                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_item, int(number_of_samples), (2, 1))
+                gulcalc_sqlite_fp_to_bin(working_dir=working_dir,
+                                         db_fp=temp_db_fp, output=output_item,
+                                         num_sample=int(number_of_samples), stream_id=(2, 1),
+                                         oasis_event_batch=event_batch)
             if do_coverage_output:
-                logging.info("STARTED: Transforming sqlite losses into gulcalc coverage binary stream for event_batch "
-                             + str(event_batch))
-                gulcalc_sqlite_fp_to_bin(temp_db_fp, output_coverage, int(number_of_samples), (1, 2))
-            logging.info("COMPLETED: Successfully generated losses as gulcalc binary stream for event batch "
-                         + str(event_batch))
+                gulcalc_sqlite_fp_to_bin(working_dir=working_dir,
+                                         db_fp=temp_db_fp, output=output_coverage,
+                                         num_sample=int(number_of_samples), stream_id=(1, 2),
+                                         oasis_event_batch=event_batch)
+
         except DotNetEngineException as e:
             logging.error("Please look at " + log_fp + " for more information")
 
@@ -276,6 +291,9 @@ def main():
                 with open(log_fp, "r") as batch_log:
                     logging.error(str(batch_log.read()))
 
+            raise e
+        except Exception as e:
+            logging.error("Some error occurred while generating or streaming losses")
             raise e
 
 
