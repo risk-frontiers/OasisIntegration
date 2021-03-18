@@ -1,0 +1,1 @@
+Test case: single location at coordinate level

@@ -1,0 +1,2 @@
+LocID,PerilID,CoverageTypeID,ModelData
+1,XHL,1,"{""loc_id"": ""1"", ""lob_id"": 1, ""cover_id"": 4, ""country_code"": ""au"", ""address_id"": null, ""address_type"": null, ""med_id"": 4870, ""med_type"": 1, ""lrg_id"": null, ""lrg_type"": null, ""zone_id"": null, ""zone_type"": null, ""latitude"": null, ""longitude"": null, ""best_res"": 1, ""state"": """", ""props"": {""YearBuilt"": 0, ""StaticMotor"": true}}"

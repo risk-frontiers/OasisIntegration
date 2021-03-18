@@ -15,7 +15,7 @@ from complex_model.OasisToRF import create_rf_input, DEFAULT_DB, get_connection_
 from complex_model.GulcalcToBin import gulcalc_sqlite_fp_to_bin
 from complex_model.Common import PerilSet
 from complex_model.RFException import FileNotFoundException, DotNetEngineException
-from complex_model.utils import is_bool, is_float
+from complex_model.utils import is_bool, is_float, is_integer, to_bool
 from datetime import datetime
 import multiprocessing
 
@@ -34,9 +34,10 @@ else:
     output_stdout = sys.stdout
 
 _DEBUG = DS.RF_DEBUG_MODE
-if "RF_DEBUG_MODE" in os.environ:
-    if isinstance(os.environ["RF_DEBUG_MODE"], str) and os.environ["RF_DEBUG_MODE"].lower() == "true":
-        _DEBUG = True
+try:
+    _DEBUG = to_bool(os.environ["RF_DEBUG_MODE"])
+except KeyError or TypeError:
+    pass
 
 logging.basicConfig(level=logging.DEBUG if _DEBUG else logging.INFO,
                     filename=DS.WORKER_LOG_FILE,
@@ -195,13 +196,14 @@ def main():
 
         # performance parameters
         max_parallelism = int(max(1, min(num_cores, num_cores/max_event_batch)))
-        if "RF_MAX_DEGREE_OF_PARALLELISM" in os.environ and isinstance(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"], int):
-            max_parallelism = int(min(max_parallelism, max(1, int(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"]))))
+        if "RF_MAX_DEGREE_OF_PARALLELISM" in os.environ \
+                and is_integer(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"]) \
+                and 1 <= int(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"]):
+            max_parallelism = int(os.environ["RF_MAX_DEGREE_OF_PARALLELISM"])
 
         batch_exposure_size = DS.DEFAULT_BATCH_EXPOSURE_SIZE
-        if "RF_BATCH_EXPOSURE_SIZE" in os.environ and isinstance(os.environ["RF_BATCH_EXPOSURE_SIZE"], int):
+        if "RF_BATCH_EXPOSURE_SIZE" in os.environ and is_integer(os.environ["RF_BATCH_EXPOSURE_SIZE"]):
             batch_exposure_size = int(os.environ["RF_BATCH_EXPOSURE_SIZE"])
-        logging.info("RF_BACTH_EXPOSURE_SIZE: " + str(batch_exposure_size))
 
         # analysis parameters
         individual_risk_mode = DS.DEFAULT_INDIVIDUAL_RISK_MODE

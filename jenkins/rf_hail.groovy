@@ -70,6 +70,7 @@ node {
             env.MODEL_VARIENT    = model_varient
             env.MODEL_ID         = '7.1.0.0'
             env.MODEL_MOUNT_TARGET = '/var/oasis/model_data'
+            env.MDK_CONFIG = '/home/worker/complex_model/oasislmf.json'
             env.COMPOSE_PROJECT_NAME = UUID.randomUUID().toString().replaceAll("-","")
 
             // SELECT MODEL DATA
@@ -100,7 +101,7 @@ node {
                  if (params.OASISLMF_BRANCH?.trim()) {
                      sh "sed -i 's|.*oasislmf.*|-e git+git://github.com/OasisLMF/OasisLMF.git@${params.OASISLMF_BRANCH}#egg=oasislmf|g' requirements.txt"
                  }
-                 sh "docker build --no-cache -f ${model_dockerfile} --build-arg worker_ver=${env.TAG_RUN_PLATFORM} -t ${model_image}:${env.TAG_RELEASE} ."
+                 sh "docker build --no-cache -f ${model_dockerfile} --build-arg worker_ver=${env.TAG_RUN_PLATFORM}-debian -t ${model_image}:${env.TAG_RELEASE} ."
             }
         }
 
@@ -129,7 +130,7 @@ node {
             //    }
             //}
 
-            // DOCKER PUSH    
+            // DOCKER PUSH
             stage ("Publish: ${model_image}:${params.TAG_RELEASE}") {
                 dir(build_workspace) {
                     sh PIPELINE + " push_image ${model_image}  ${params.TAG_RELEASE}"

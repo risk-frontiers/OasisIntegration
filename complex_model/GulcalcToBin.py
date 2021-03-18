@@ -94,7 +94,7 @@ def gulcalc_sqlite_to_bin(con, output, add_first_separator):
     :return: OASIS compliant item or coverage binary stream
     """
     cur = con.cursor()
-    cur.execute("SELECT event_id, loc_id, sample_id, loss FROM oasis_loss ORDER BY event_id")
+    cur.execute("SELECT event_id, loc_id, sample_id, loss FROM oasis_loss ORDER BY event_id, loc_id, sample_id")
 
     last_key = (0, 0)
     rc = 0

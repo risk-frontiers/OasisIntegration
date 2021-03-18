@@ -1,0 +1,1 @@
+Test case: 1 locations, motor at postcode, possible combination of smv value

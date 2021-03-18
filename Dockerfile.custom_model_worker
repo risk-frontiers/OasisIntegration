@@ -2,8 +2,8 @@ ARG worker_ver=latest
 FROM coreoasis/model_worker:$worker_ver
 
 COPY ./requirements.txt /tmp/
-RUN pip install --upgrade pip
-RUN pip install -r /tmp/requirements.txt
+#UN pip3 install --upgrade pip3
+RUN pip3 install -r /tmp/requirements.txt
 
 COPY ./conf.ini ./
 COPY ./set_ktools_num_processes.sh ./
@@ -13,8 +13,10 @@ COPY ./meta-data /home/worker/meta-data
 COPY ./setup.py /home/worker
 
 RUN chmod +x /home/worker/complex_model/Risk.Platform.Core/Risk.Platform.Core
-ENV PYTHONPATH "${PYTHONPATH}:/home/worker/complex_model"
 
-RUN pip install -e /home/worker/
+ENV PYTHONPATH "${PYTHONPATH}:/home/worker/complex_model"
+ENV OASIS_MDK_CONFIG=/home/worker/complex_model/oasislmf.json
+
+RUN pip3 install -e /home/worker/
 
 #ENTRYPOINT /bin/bash
