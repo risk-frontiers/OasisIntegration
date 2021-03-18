@@ -277,9 +277,8 @@ class HailAUSKeysLookup(OasisBaseKeysLookup):
             uni_exposure['best_res'] = EnumResolution.LatLong.value
 
         uni_exposure['state'] = None
-        areacode = str(record["areacode"]).upper()
-        if areacode in AU_STATES:
-            uni_exposure['state'] = areacode
+        if 'areacode' in record and str(record["areacode"]).upper() in AU_STATES:
+            uni_exposure['state'] = str(record["areacode"]).upper()
 
         # uni_exposure['catchment_type'] # todo: when implementing flood
         # uni_exposure['catchment_id']
