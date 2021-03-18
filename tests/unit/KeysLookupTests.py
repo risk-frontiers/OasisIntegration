@@ -257,14 +257,14 @@ class CreateUniExposureTests(RFBaseTestCase):
         lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': "GNAF", 'geogname1': "GANSW123456789",
-                       'areacode': 'au', 'occupancycode': oc}
+                       'areacode': 'nsw', 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
         self.assertEqual("GANSW123456789", exposure['address_id'])
         self.assertEqual(EnumAddressType.GNAF.value, exposure['address_type'])
         self.assertEqual(EnumResolution.Address.value, exposure['best_res'])
-        self.assertEqual('au', exposure['state'])
+        self.assertEqual('nsw', exposure['state'].lower())
 
         self.assertFalse('latitude' in exposure and exposure['latitude'] is not None)
         self.assertFalse('longitude' in exposure and exposure['longitude'] is not None)
@@ -278,7 +278,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         lookup._supported_gnaf = ['GANSW123456789']
         default_loc = {'locperilscovered': 'AA1', 'loc_id': 1,
                        'geogscheme1': "GNAF", 'geogname1': "GANSW123456789",
-                       'areacode': 'au', 'occupancycode': oc}
+                       'areacode': 'nsw', 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])
@@ -944,7 +944,7 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'geogscheme1': 'ICA', 'geogname1': 49,
                        'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
                        'geogscheme3': 'CRO', 'geogname3': 2,
-                       'postalcode': 4000, 'areacode': 'au', 'occupancycode': oc}
+                       'postalcode': 4000, 'areacode': 'nsw', 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         exposure = lookup.create_uni_exposure(loc, coverage['id'])
@@ -959,7 +959,7 @@ class CreateUniExposureTests(RFBaseTestCase):
         self.assertEqual(4000, exposure['med_id'])
         self.assertEqual(EnumResolution.Postcode.value, exposure['med_type'])
         self.assertEqual(EnumResolution.LatLong.value, exposure['best_res'])
-        self.assertEqual('au', exposure['state'])
+        self.assertEqual('nsw', exposure['state'].lower())
 
     @parameterized.expand(FAIL_COVERAGES_OCCUPANCY_COMBINATION)
     def test_address_latlon_postcode_cresta_ica_zone_state_fail(self, coverage, oc):
@@ -971,7 +971,7 @@ class CreateUniExposureTests(RFBaseTestCase):
                        'geogscheme1': 'ICA', 'geogname1': 49,
                        'geogscheme2': 'GNAF', 'geogname2': 'GANSW123456789',
                        'geogscheme3': 'CRO', 'geogname3': 2,
-                       'postalcode': 4000, 'areacode': 'au', 'occupancycode': oc}
+                       'postalcode': 4000, 'areacode': 'nsw', 'occupancycode': oc}
 
         loc = copy.deepcopy(default_loc)
         self.assertRaisesWithErrorCode(151, lookup.create_uni_exposure, loc, coverage['id'])

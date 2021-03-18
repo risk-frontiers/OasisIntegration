@@ -47,14 +47,36 @@ PerilSet = {x: {"OED_ID": PerilSet[x]["OED_ID"],
             for x in PerilSet}
 
 
-OED_OCCUPANCY_CODE = {"residential": [{"min": 1000, "max": 1000}, {"min": 1050, "max": 1099}],
-                      "commercial": [{"min": 1100, "max": 1149}, {"min": 1200, "max": 1249}],
-                      "industrial": [{"min": 1150, "max": 1199}],
-                      "unsupported": [{"min": 1250, "max": 3999}, {"min": 0, "max": 0}]}
-OED_CONSTRUCTION_CODE = {"structure": [{"min": 5000, "max": 5349}],
-                         "motor": [{"min": 5850, "max": 5949}],
-                         "motor_marine": [{"min": 5900, "max": 5949}],
-                         "unsupported": [{"min": 5350, "max": 5849}, {"min": 5950, "max": 7999}]}
+OED_OCCUPANCY_CODE = {
+    "residential": [
+        {"min": 1000, "max": 1000, "class": "unknown"},
+        {"min": 1050, "max": 1099, "class": "residential"}
+    ], "commercial": [
+        {"min": 1100, "max": 1149, "class": "commercial"},
+        {"min": 1200, "max": 1249, "class": "religion/government/education"}
+    ], "industrial": [
+        {"min": 1150, "max": 1199, "class": "industrial"}
+    ], "unsupported": [
+        {"min": 1250, "max": 3999, "class": "special"},
+        {"min": 0, "max": 0, "class": "placeholder"}
+    ]
+}
+OED_CONSTRUCTION_CODE = {
+    "structure": [
+        {"min": 5000, "max": 5000, "class": "unknown"},
+        {"min": 5050, "max": 5099, "class": "wood"},
+        {"min": 5100, "max": 5149, "class": "masonry"},
+        {"min": 5150, "max": 5199, "class": "concrete"},
+        {"min": 5200, "max": 5249, "class": "steel"},
+    ], "motor": [
+        {"min": 5850, "max": 5949, "class": "motor"}
+    ], "motor_marine": [
+        {"min": 5900, "max": 5949, "class": "marine craft"}
+    ], "unsupported": [
+        {"min": 5250, "max": 5849, "class": "special structure"},
+        {"min": 5950, "max": 7999, "class": "special motor"}
+    ]
+}
 
 
 def get_covered_ids(peril_id):
