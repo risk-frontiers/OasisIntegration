@@ -1,0 +1,1 @@
+Test case: single location, motor at postcode

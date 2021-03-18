@@ -1,16 +1,16 @@
-[
-  {
-    "name": "HailAUS7",
-    "supplier_id": "RiskFrontiers",
-    "model_id": "HailAUS",
-    "version_id": "7.1.0.0",
-    "peril": "XHL",
-    "worker_version": "1.11.1",
-    "uses_model_files": true,
-    "description": "Australia Hailstorm",
-    "keys_data_version": "",
-    "model_data_version": "1.2",
-    "countries": "AU",
-    "mandatory_fields": ""
-  }
-]
+{
+  "name": "HailAUS7",
+  "supplier_id": "RiskFrontiers",
+  "model_id": "HailAUS",
+  "description": "Australia Hailstorm",
+  "version_id": "7.1.0.0",
+  "peril": "XHL",
+  "worker_image": "worker/riskfrontiers/hailaus",
+  "worker_version": "1.10.2",
+  "model_data_version": "1.2",
+  "keys_data_version": "",
+  "uses_model_files": false,
+  "countries": "AU",
+  "mandatory_fields": ""
+}
+

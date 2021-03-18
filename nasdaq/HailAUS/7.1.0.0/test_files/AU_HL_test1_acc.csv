@@ -19,3 +19,4 @@ PortNumber,AccNumber,AccName,AccCurrency,PolNumber,PolPerilsCovered,AccUserDef1
 1,18,ConUnknownUnsupportedForMotor,AUD,18,AA1,OK
 1,19,Coverage,AUD,19,AA1,OK
 1,20,CoverageMotorNeedConstructionCode,AUD,20,AA1,OK
+1,21,OtherCoverage,AUD,21,AA1,OK

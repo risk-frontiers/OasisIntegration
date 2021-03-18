@@ -4,7 +4,7 @@
 
 from enum import Enum
 from oasislmf.utils.peril import PERILS, PERIL_GROUPS
-from complex_model.RFException import ArgumentOutOfRangeException
+from complex_model.RFException import ArgumentOutOfRangeException, LocationNotModelledException
 
 
 class EnumPeril(Enum):
@@ -47,6 +47,16 @@ PerilSet = {x: {"OED_ID": PerilSet[x]["OED_ID"],
             for x in PerilSet}
 
 
+OED_OCCUPANCY_CODE = {"residential": [{"min": 1000, "max": 1000}, {"min": 1050, "max": 1099}],
+                      "commercial": [{"min": 1100, "max": 1149}, {"min": 1200, "max": 1249}],
+                      "industrial": [{"min": 1150, "max": 1199}],
+                      "unsupported": [{"min": 1250, "max": 3999}, {"min": 0, "max": 0}]}
+OED_CONSTRUCTION_CODE = {"structure": [{"min": 5000, "max": 5349}],
+                         "motor": [{"min": 5850, "max": 5949}],
+                         "motor_marine": [{"min": 5900, "max": 5949}],
+                         "unsupported": [{"min": 5350, "max": 5849}, {"min": 5950, "max": 7999}]}
+
+
 def get_covered_ids(peril_id):
     res = [PERILS[x]['id'] for x in PERILS if PERILS[x]['id'] == peril_id]
     res = res + [peril for x in PERIL_GROUPS if PERIL_GROUPS[x]['id'] == peril_id
@@ -86,6 +96,8 @@ AU_BOUNDING_BOX = {
     'MIN': (112.0000000, -44.0000000),
     'MAX': (154.0000000, -10.0000000)
 }
+
+AU_STATES = {"NSW", "ACT", "VIC", "TAS", "QLD", "SA", "WA", "NT"}
 
 
 def to_uni_scale_id(res):
@@ -168,15 +180,18 @@ class EnumCover(Enum):
     Motor = 4
 
 
-def oed_to_rf_coverage(oed_cover):
+def oed_to_rf_coverage(oed_cover, is_motor):
     if oed_cover == 1:
-        return EnumCover.Building.value  # Building
+        return EnumCover.Motor.value if is_motor else EnumCover.Building.value
     if oed_cover == 2:
-        return EnumCover.Motor.value  # Motor
-    if oed_cover == 3:
+        raise LocationNotModelledException("Other coverage is not supported", error_code=210)
+    if oed_cover == 3 and not is_motor:
         return EnumCover.Contents.value  # Contents
-    if oed_cover == 4:
+    if oed_cover == 4 and not is_motor:
         return EnumCover.BI.value  # Business Interruption
+    raise LocationNotModelledException("Cannot convert coverage to RF internal coverage id. "
+                                       "Do you have have Contents or BI TIV for a motor risk? This is not supported",
+                                       error_code=211)
 
 
 class EnumLineOfBusiness(Enum):

@@ -1,0 +1,1 @@
+Test case: gnaf, coordinage and postcode

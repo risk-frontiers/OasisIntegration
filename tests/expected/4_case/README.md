@@ -1,0 +1,1 @@
+Test case: 1 location, motor at postcode, difference between smv on and off
