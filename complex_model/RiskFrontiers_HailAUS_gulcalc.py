@@ -224,6 +224,11 @@ def main():
         input_scaling = max(-1.0, input_scaling)
         input_scaling = min(input_scaling, 1.0)
 
+        hailaus_db = DS.DEFAULT_HAILAUS_DB
+        if ('event_set' in model_settings and model_settings['event_set'].lower() == 'restricted') or \
+           ('event_occurrence_id' in model_settings and model_settings['event_occurrence_id'].lower() == 'restricted'):
+            hailaus_db = DS.DEFAULT_HAILAUS_DB + "_restricted"
+
         oasis_param = {
             "Peril": DS.DEFAULT_RF_PERIL_ID,
             "ItemConduit": {"DbBrand": 1, "ConnectionString": get_connection_string(temp_db_fp)},
@@ -236,6 +241,7 @@ def main():
             "ComplexModelDirectory": complex_model_directory,
             "LicenseFile": licence_file,
             "RiskPlatformData": risk_platform_data,
+            "PerilDirectoryName": hailaus_db,
             "WorkingDirectory": working_dir,
             "NumRows": num_rows,
             "PortfolioId": DS.DEFAULT_PORTFOLIO_ID,

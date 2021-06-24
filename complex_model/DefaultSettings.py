@@ -13,6 +13,7 @@ DEFAULT_INPUT_SCALING = 0.0
 DEFAULT_RF_PERIL_ID = 2
 DEFAULT_SEED = 1
 BASE_DB_NAME = 'riskfrontiersdbAUS_v2_6.db'
+DEFAULT_HAILAUS_DB = 'riskfrontiersdbHAILAUS_v2_6'
 
 
 # oasis file paths

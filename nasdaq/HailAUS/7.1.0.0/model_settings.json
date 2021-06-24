@@ -2,18 +2,20 @@
     "model_settings":{
         "event_set":{
             "name": "Event Set",
-            "desc": "Probabilistic only",
-            "default": "P",
+            "desc": "Event Set selection",
+            "default": "restricted",
             "options": [
-                {"id": "P", "desc": "Probabilistic"}
+                {"id": "full", "desc": "Probabilistic (Full)", "valid_occurrence_ids":["full"]},
+                {"id": "restricted", "desc": "Probabilistic (Restricted)", "valid_occurrence_ids":["restricted"]}
             ]
         },
         "event_occurrence_id":{
             "name": "Occurrence Set",
             "desc": "Occurrence selection",
-            "default": "1",
+            "default": "restricted",
             "options":[
-                {"id": "1", "desc": "Long Term"}
+                {"id": "full", "desc": "Long Term (Full)", "max_periods": 50000},
+                {"id": "restricted", "desc": "Long Term (Restricted)", "max_periods": 50000}
             ]
         },
         "boolean_parameters":[
