@@ -1,8 +1,8 @@
 {
   "model_settings": {
     "return_period_file": true,
-    "event_set": "P",
-    "event_occurrence_id": "1",
+    "event_set": "full",
+    "event_occurrence_id": "full",
     "static_motor": false,
     "demand_surge": false,
     "input_scaling": 0

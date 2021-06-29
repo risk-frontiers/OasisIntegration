@@ -55,10 +55,8 @@ echo "
  This release was developed and validated with the following components:
 
    Model Data: ${DATA_VER}
-   Oasis API: ${OASIS_API_VER}
+   Oasis Platform: ${OASIS_API_VER}
    Oasis UI: ${OASIS_UI_VER}
-   Oasislmf: ${OASISLMF_VER}
-   Ktools: ${KTOOLS_VER}
 
 #########################################################################
 "
@@ -147,28 +145,14 @@ if [[ -d ${model_data} ]]
     echo "Licence file installed in ${model_data}"
 
     # shallow verify model_data
-    if [[ ! -f "events.bin" ]]
+    if [[ ! -f "events_full.bin" ]]
         then echo "This is not a valid model data directory: events.bin missing"
         exit 1
     fi
 
-    if [[ ! -f "events_p.bin" ]]
-        then echo "Creating events_p.bin"
-        ln -s events.bin events_p.bin
-    fi
-    if [[ ! -f "events_h.bin" ]]
-        then echo "Creating events_h.bin"
-        ln -s events.bin events_h.bin
-    fi
-
-    if [[ ! -f "occurrence.bin" ]]
+    if [[ ! -f "occurrence_full.bin" ]]
         then echo "This is not a valid model data directory: occurrence.bin missing"
         exit 1
-    fi
-
-    if [[ ! -f "occurrence_1.bin" ]]
-        then echo "Creating occurrence_1.bin"
-        ln -s occurrence.bin occurrence_1.bin
     fi
 
     # cp -r ${SCRIPT_DIR}/meta-data ${model_data}

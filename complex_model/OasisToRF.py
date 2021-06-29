@@ -45,6 +45,7 @@ RF_DEFAULT_COVERAGE_SQLITE_DEF = {
     "currency": {"datatype": "TEXT", "default": None},
     "deductible": {"datatype": "REAL", "default": None},
     "limit": {"datatype": "REAL", "default": None},
+    "dedlim_type": {"datatype": "INTEGER", "default": None},
     "scale_id": {"datatype": "INTEGER", "default": None},
     "origin_file_line": {"datatype": "INTEGER", "default": 0}, }
 

@@ -1,6 +1,12 @@
 {
   "runtimeOptions": {
-    "tfm": "netcoreapp2.2",
+    "tfm": "net5.0",
+    "includedFrameworks": [
+      {
+        "name": "Microsoft.NETCore.App",
+        "version": "5.0.6"
+      }
+    ],
     "configProperties": {
       "System.Globalization.Invariant": true
     }
