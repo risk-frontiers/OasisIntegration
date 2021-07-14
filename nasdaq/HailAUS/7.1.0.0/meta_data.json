@@ -6,11 +6,11 @@
   "version_id": "7.1.0.0",
   "peril": "XHL",
   "worker_image": "worker/riskfrontiers/hailaus",
-  "worker_version": "1.15.12",
+  "worker_version": "7.1.0.0_1.15.13",
   "model_data_version": "1.3",
   "keys_data_version": "",
   "uses_model_files": false,
   "countries": "AU",
-  "mandatory_fields": ""
+  "mandatory_fields": "OccupancyCode"
 }
 
