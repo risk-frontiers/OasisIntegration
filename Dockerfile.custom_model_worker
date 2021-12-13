@@ -11,6 +11,7 @@ RUN chmod +x /home/worker/set_ktools_num_processes.sh
 COPY ./complex_model /home/worker/complex_model
 COPY ./meta-data /home/worker/meta-data
 COPY ./setup.py /home/worker
+COPY ./data_version.json /home/worker/data_version.json
 
 RUN chmod +x /home/worker/complex_model/Risk.Platform.Core/Risk.Platform.Core
 

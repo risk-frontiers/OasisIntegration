@@ -5,5 +5,6 @@
     "lookup_module_path": "/home/worker/complex_model",
     "model_data_dir": "/var/oasis/model_data",
     "model_version_csv": "/home/worker/complex_model/ModelVersion.csv",
-    "oed_location_csv": "/home/worker/tests/expected/0_case/location.csv"
+    "oed_location_csv": "/home/worker/tests/expected/0_case/location.csv",
+    "model_custom_gulcalc": "RiskFrontiers_HailAUS_gulcalc"
 }

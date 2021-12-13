@@ -16,6 +16,7 @@ from complex_model.Common import ArgumentOutOfRangeException
 TEST_DIR = os.path.dirname(__file__)
 TEST_INPUT_DIR = os.path.join(TEST_DIR, 'data', 'input', 'u_lossoasis_r254')
 TEST_MODEL_DATA_DIR = os.path.join(TEST_DIR, 'data', 'model_data')
+GULTOCSV = "/oasis/ktools/gultocsv"
 
 
 def load_csv(con, csv_file, reg_col='item_id'):
@@ -48,7 +49,7 @@ def recreate_csv_from_bin(working_dir, file_fp, stream_name="loss"):
     con.close()
 
     gul_csv_fp = os.path.join(working_dir, "gul.csv")
-    subprocess.check_call("gultocsv < {} > {}".format(gul_fp, gul_csv_fp), stderr=subprocess.STDOUT, shell=True)
+    subprocess.check_call(f"{GULTOCSV} < {gul_fp} > {gul_csv_fp}", stderr=subprocess.STDOUT, shell=True)
     return gul_csv_fp
 
 
@@ -59,7 +60,7 @@ class GulcalcToBinTests(RFBaseTestCase):
 
     @parameterized.expand([[i, s] for i, s in itertools.product(range(0, 4), list(SUPPORTED_GUL_STREAMS.keys()))])
     def test_event_ordering(self, file_id, stream_type):
-        test_filename = "test_{}_{}.csv".format(file_id, stream_type)
+        test_filename = f"test_{file_id}_{stream_type}.csv"
         with TemporaryDirectory() as working_dir:
             file_fp = os.path.join(TEST_INPUT_DIR, test_filename)
             gul_csv_fp = recreate_csv_from_bin(working_dir, file_fp, stream_type)
@@ -69,7 +70,7 @@ class GulcalcToBinTests(RFBaseTestCase):
 
     @parameterized.expand([[i, s] for i, s in itertools.product(range(0, 4), list(SUPPORTED_GUL_STREAMS.keys()))])
     def test_sidx_ordering(self, file_id, stream_type):
-        test_filename = "test_{}_{}.csv".format(file_id, stream_type)
+        test_filename = f"test_{file_id}_{stream_type}.csv"
         with TemporaryDirectory() as working_dir:
             file_fp = os.path.join(TEST_INPUT_DIR, test_filename)
             gul_csv_fp = recreate_csv_from_bin(working_dir, file_fp, stream_type)
@@ -89,7 +90,7 @@ class GulcalcToBinTests(RFBaseTestCase):
 
     @parameterized.expand([[i, s] for i, s in itertools.product(range(0, 4), list(SUPPORTED_GUL_STREAMS.keys()))])
     def test_multi_packets_stream(self, file_id, stream_type):
-        test_filename = "test_{}_{}.csv".format(file_id, stream_type)
+        test_filename = f"test_{file_id}_{stream_type}.csv"
         with TemporaryDirectory() as working_dir:
             file_fp = os.path.join(TEST_INPUT_DIR, test_filename)
             gul_csv_fp = recreate_csv_from_bin(working_dir, file_fp, stream_type)

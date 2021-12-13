@@ -38,6 +38,11 @@ try:
     _DEBUG = to_bool(os.environ["RF_DEBUG_MODE"])
 except KeyError or TypeError:
     pass
+_MODEL_ID = None
+try:
+    _MODEL_ID = os.environ["OASIS_MODEL_ID"]
+except KeyError:
+    pass
 
 logging.basicConfig(level=logging.DEBUG if _DEBUG else logging.INFO,
                     filename=DS.WORKER_LOG_FILE,
@@ -85,6 +90,10 @@ def main():
         '-X', '--complex_model_directory', required=False, default=DS.COMPLEX_MODEL_DIRECTORY,
         help='Complex model directory.',
     )
+    parser.add_argument(
+        '-v', '--version', action='version', version=f'Risk Frontiers gulcalc: version: {DS.INTEGRATION_VERSION}',
+        help='gulcalc version.',
+    )
 
     args = parser.parse_args()
 
@@ -128,7 +137,9 @@ def main():
     number_of_samples = analysis_settings_json['number_of_samples']
 
     # Access any model specific settings for the analysis
-    model_version_id = analysis_settings_json['model_version_id'].lower()
+    model_id = _MODEL_ID.lower()
+    if 'model_id' in analysis_settings_json:
+        model_id = analysis_settings_json['model_id'].lower()
     if 'model_settings' in analysis_settings_json:
         model_settings = analysis_settings_json['model_settings']
     else:
@@ -192,7 +203,7 @@ def main():
 
         # generate oasis_param.json
         complex_model_directory = args.complex_model_directory
-        max_event_id = PerilSet[model_version_id]['MAX_EVENT_INDEX']
+        max_event_id = PerilSet[model_id]['MAX_EVENT_INDEX']
 
         # performance parameters
         max_parallelism = int(max(1, min(num_cores, num_cores/max_event_batch)))

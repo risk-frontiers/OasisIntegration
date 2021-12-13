@@ -23,7 +23,7 @@ class PostcodeLookupTests(RFBaseTestCase):
                            for _, test_loc in locations.iterrows()])
     def test_get_postcode(self, postcode, longitude, latitude):
         looked_postcode = PL.get_postcode(longitude, latitude)
-        self.assertEqual(postcode, looked_postcode, "failed for " + str(latitude) + "," + str(longitude))
+        self.assertEqual(postcode, looked_postcode, f"failed for {latitude},{longitude}")
 
     def test_get_postcode_zero(self):
         looked_postcode = PL.get_postcode(0, 0)
