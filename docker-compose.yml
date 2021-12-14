@@ -116,7 +116,7 @@ services:
     volumes:
       - ${OASIS_DOCKER_DB_DATA_DIR:-./db-data}/celery:/var/lib/mysql/:rw
   rabbit:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.8.14-management
     container_name: oasis_rabbit
     environment:
       - RABBITMQ_DEFAULT_USER=rabbit

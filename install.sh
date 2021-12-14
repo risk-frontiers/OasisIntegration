@@ -73,7 +73,7 @@ then
     exit 1
 fi
 
-echo "Removing API and worker containers"
+echo "Removing API, worker and infrastructure containers (we need to replace the service listening on various ports)"
 docker rm -f oasis_api_server
 docker rm -f oasis_worker_monitor
 docker rm -f hailaus_complex_model
@@ -81,9 +81,7 @@ docker rm -f oasis_server_db
 docker rm -f oasis_celery_db
 docker rm -f oasis_rabbit
 docker rm -f oasis_flower
-docker rm -f oasis_user-interface_1
-docker rm -f oasisintegration_user-interface_1
-docker rm -f oasisui_proxy
+docker rm -f oasiscomplexmodel_user-interface_1
 
 echo "Pruning obsolete images and networks"
 docker system prune -f

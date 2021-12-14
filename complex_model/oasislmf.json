@@ -8,5 +8,6 @@
     "ktools_alloc_rule_il": 2,
     "ktools_alloc_rule_ri": 3,
     "ktools_error_guard": false,
-    "disable_exposure_summary": true
+    "disable_exposure_summary": true,
+    "model_custom_gulcalc": "RiskFrontiers_HailAUS_gulcalc"
 }

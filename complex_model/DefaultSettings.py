@@ -1,5 +1,7 @@
 """"This contains default values for the gulcalc setting"""
 import os
+import json
+import pathlib
 
 
 COUNTRY_CODE = "au"
@@ -24,3 +26,12 @@ MODEL_DATA_DIRECTORY = "/var/oasis/model_data"
 
 # misc
 RF_DEBUG_MODE = False
+
+# version
+HOME_DIR = pathlib.Path(__file__).parent.parent.resolve()
+DATA_VERSION_FILE = os.path.join(HOME_DIR, "data_version.json")
+VERSIONS = None
+if os.path.isfile(DATA_VERSION_FILE):
+    with open(DATA_VERSION_FILE, "rb") as f:
+        VERSIONS = json.load(f)
+INTEGRATION_VERSION = VERSIONS['INTEGRATION_VER'] if VERSIONS else "Undefined"

@@ -29,6 +29,10 @@ then
     docker rm -f oasis_user-interface_1
     docker rm -f oasisintegration_user-interface_1
     docker rm -f oasisui_proxy
+    docker rm -f oasiscomplexmodel_user-interface_1
+
+    echo "Removing custom worker image"
+    docker rmi coreoasis/rf_hail:${INTEGRATION_VER}
 
     echo "Removing custom worker image"
     docker rmi coreoasis/rf_hail:${INTEGRATION_VER}
